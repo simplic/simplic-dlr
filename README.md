@@ -28,7 +28,7 @@ A list of samples can be found in the `src/Samples` directory of the repository.
 
 Install `Simplic.Dlr` by compiling on your own or using [nuget](https://www.nuget.org/packages/Simplic.Dlr/).
 
-### Initialie Simplic.Dlr
+### Initialize Simplic.Dlr
 
 To use Simplic.Dlr you always need to create a `DlrHost`. A `DlrHost` will always be initialized with a specific language:
 
