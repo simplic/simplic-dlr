@@ -45,7 +45,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Simplic.Dlr.csproj">
+    <ProjectReference Include="..\..\Simplic.Dlr\Simplic.Dlr.csproj">
       <Project>{265e557a-ebef-410a-976c-cb561716cfa9}</Project>
       <Name>Simplic.Dlr</Name>
     </ProjectReference>
