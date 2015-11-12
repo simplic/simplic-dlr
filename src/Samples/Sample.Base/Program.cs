@@ -36,6 +36,18 @@ namespace Sample.Base
             dynInstance.var1 = "Variable content 2.";
             dynInstance.doPrintVar();
 
+            // Cache
+            System.Diagnostics.Stopwatch watch = new System.Diagnostics.Stopwatch();
+            watch.Start();
+            host.DefaultScope.Execute("print 'Hello World'");
+            watch.Stop();
+            Console.WriteLine("No cached: " + watch.ElapsedMilliseconds.ToString());
+
+            watch.Start();
+            host.DefaultScope.Execute("print 'Hello World'");
+            watch.Stop();
+            Console.WriteLine("Cached: " + watch.ElapsedMilliseconds.ToString());
+
             Console.ReadLine();
         }
     }

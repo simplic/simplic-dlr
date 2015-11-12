@@ -14,6 +14,7 @@ namespace Simplic.Dlr
         #region Private Member
         private ScriptScope scriptScope;
         private IDlrHost host;
+        private IDictionary<string, CompiledCode> cachedExpressions;
         #endregion
 
         #region Constructor
@@ -24,6 +25,7 @@ namespace Simplic.Dlr
         public DlrScriptScope(IDlrHost host)
         {
             this.host = host;
+            cachedExpressions = new Dictionary<string, CompiledCode>();
 
             scriptScope = host.ScriptEngine.CreateScope();
         }
@@ -38,10 +40,46 @@ namespace Simplic.Dlr
         /// Execute a simple script expression
         /// </summary>
         /// <param name="expression">Script expression as a string</param>
+        /// <param name="cache">True if the expression should be cached</param>
         /// <returns>Result of the script expression as dynamic</returns>
-        public dynamic Execute(string expression)
+        public dynamic Execute(string expression, bool cache = true)
         {
-            return host.ScriptEngine.CreateScriptSourceFromString(expression).Execute(scriptScope);
+            if (expression == null)
+            {
+                throw new ArgumentNullException(expression);
+            }
+
+            if (cache == false)
+            {
+                return host.ScriptEngine.CreateScriptSourceFromString(expression).Execute(scriptScope);
+            }
+            else
+            {
+                string hash = Helper.Hash(expression);
+
+                if (cachedExpressions.ContainsKey(hash))
+                {
+                    CompiledCode cc = cachedExpressions[hash];
+                    return cc.Execute(scriptScope);
+                }
+                else
+                {
+                    ScriptSource source = host.ScriptEngine.CreateScriptSourceFromString(expression);
+                    CompiledCode cc = source.Compile();
+                    cachedExpressions.Add(hash, cc);
+
+                    return cc.Execute(scriptScope);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Clear cached expressions
+        /// </summary>
+        public void ClearCache()
+        {
+            cachedExpressions.Clear();
+            cachedExpressions = new Dictionary<string, CompiledCode>();
         }
 
         /// <summary>

@@ -71,6 +71,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Helper\Helper.cs" />
     <Compile Include="IDlrHost.cs" />
     <Compile Include="Scope\DlrClass.cs" />
     <Compile Include="DlrHost.cs" />

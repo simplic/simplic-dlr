@@ -13,6 +13,23 @@ namespace Simplic.Dlr
     /// </summary>
     public class IronPythonLanguage : IDlrLanguage
     {
+        #region [Const]
+        /// <summary>
+        /// Character for package separation
+        /// </summary>
+        public const char PACKAGE_SEPARATOR = '/';
+
+        /// <summary>
+        /// Default extension of a python file
+        /// </summary>
+        public const string PYTHON_FILE_EXTENSION = ".py";
+
+        /// <summary>
+        /// File which defines a package
+        /// </summary>
+        public const string PACKAGE_DEFINITION_FILE = "__init__" + PYTHON_FILE_EXTENSION;
+        #endregion
+
         #region Events & Delegates
         /// <summary>
         /// Import delegate to overwrite IP import-system
@@ -101,22 +118,74 @@ namespace Simplic.Dlr
             }
             #endregion
 
+            /*            
+            Import rules for Python modules and packages:
+
+            ---
+            *First scenario*
+
+            import foo
+
+            tries to find: `foo/__init__.py` if this exists: import / exit
+            tries to find: `foo.py` if this exists: import / exit
+
+            ---
+
+            import foo.bar
+
+            tries to find: `foo/__init__.py`: if this exists: import
+            tries to find: `foo/bar/__init__.py`: if this exists: import / exit
+            tries to find: `foo/bar.py`: if this exists: import exit
+
+            ---
+
+            from foo import foo1
+
+            same as `import foo`
+
+            ---
+
+            from foo.bar import foobar
+
+            same as `import foo.bar`
+            */
+
+
             // Import python namespaces using the custom script resolving system
 
             // Split module name, because sub.modules also needs to be imported
+
             string[] modulePath = moduleName.Split(new char[] { '.' });
+            int element = 0;
 
             foreach (var mp in modulePath)
             {
                 // Generate the absolte path, to know where to import from
                 if (!string.IsNullOrWhiteSpace(absolutePath))
                 {
-                    absolutePath += ".";
+                    absolutePath += PACKAGE_SEPARATOR;
                 }
+
                 absolutePath += mp;
 
-                // Try to import from current absolt path
-                Console.WriteLine("Import from" + absolutePath);                
+                // Check if not last element in path, else skip
+                if (element < (modulePath.Length - 1))
+                {
+                    // Try to load sub-modul. Must be loaded over an __init__.py
+                    string subAbsoluteModulePath = absolutePath + PACKAGE_SEPARATOR + PACKAGE_DEFINITION_FILE;
+                    Console.WriteLine("Try import sub package: {0}", subAbsoluteModulePath);
+                }
+                else
+                {
+                    // Try to import module
+                    string absolteScriptPath = absolutePath + PYTHON_FILE_EXTENSION;
+                    Console.WriteLine("Try import module: {0}", absolteScriptPath);
+
+                    string absolutePackagePath = absolutePath + PACKAGE_SEPARATOR + PACKAGE_DEFINITION_FILE;
+                    Console.WriteLine("Try import package: {0}", absolutePackagePath);
+                }
+
+                element++;            
             }
 
 

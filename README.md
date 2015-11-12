@@ -9,7 +9,7 @@ The library provides the following functions:
 * Access dlr variables easily over the integrated `DlrScriptScope`
 * Easily write your own script import resolver, to load scripts and even package from the database or any other source: `IDlrImportResolver` [Not implemented yet, but very soon]
 * Precompile code for faster usage [Not implemented yet, but very soon]
-* Cache scripts/statements for faster execution [Not implemented yet, but very soon]
+* Cache scripts/statements for faster execution
 
 ## Installation
 
