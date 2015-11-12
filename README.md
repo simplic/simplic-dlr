@@ -46,13 +46,13 @@ Tha's all you need to initialize the following component:
 
 To execute a line of IronPython code just use default scope and execute the script directly:
 
-```
+```csharp
 host.DefaultScope.Execute("print 'Hello World'");
 ```
 
 ### Create an instance of an IronPython class in C# and access it's member
 
-```
+```csharp
 host.DefaultScope.Execute("class TestClass(object):\r\n"
     + "    var1 = ''\r\n"
     + "    def doPrint(self, txt):\r\n"
@@ -75,12 +75,11 @@ instance.CallMethod("doPrintVar");
 
 dynInstance.var1 = "Variable content 2.";
 dynInstance.doPrintVar();
-
 ```
 
 ### Create a c# wrapper for IronPython classes
 
-```
+```csharp
 /// <summary>
 /// Simple wrapper class
 /// </summary>
