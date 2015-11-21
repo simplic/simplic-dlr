@@ -1,6 +1,6 @@
 # Simplic.Dlr
 
-Simplic.Dlr is a library to use the Microsoft Dlr in a very simple and efficient way, without any lost of flexibility.
+Simplic.Dlr is a library to use the Microsoft Dlr in a very simple and efficient way, without loosing flexibility.
 The library provides the following functions:
 
 * Very easy usage of the Microsoft Dlr and IronPython without loosing flexibility: `DlrHost`
