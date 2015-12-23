@@ -50,6 +50,25 @@ To execute a line of IronPython code just use default scope and execute the scri
 host.DefaultScope.Execute("print 'Hello World'");
 ```
 
+### Set search paths for modules
+
+The host provides methods to add and remove search paths very easily
+
+#### Add search path to the host
+
+```csharp
+    host.AddSearchPath("C:\\Python\\lib")
+```
+
+#### Remove search path from the host
+
+```csharp
+    if (host.RemoveSearchPath('C:\\Python\\lib'))
+    {
+        // Removes successfully        
+    }
+```
+
 ### Create an instance of an IronPython class in C# and access it's member
 
 ```csharp
