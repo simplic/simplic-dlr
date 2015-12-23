@@ -15,6 +15,7 @@ namespace Simplic.Dlr
         private ScriptScope scriptScope;
         private IDlrHost host;
         private IDictionary<string, CompiledCode> cachedExpressions;
+        private IDictionary<string, CompiledCode> compiledScripts;
         #endregion
 
         #region Constructor
@@ -121,6 +122,72 @@ namespace Simplic.Dlr
             }
 
             return scriptScope.GetVariable(variable);
+        }
+        #endregion
+
+        #region [PreCompile Code]
+        /// <summary>
+        /// Precompile code and store it in a dictioanry
+        /// </summary>
+        /// <param name="name">Unique name of the script, to access it later</param>
+        /// <param name="code">Code to compile</param>
+        /// <param name="overrideExisting">True if existing scripts with the same name can be overriden. If set to false and the
+        /// script alredy exists, an exception will be thrown</param>
+        /// <param name="isModule">Register also as module, so it can be load with the `import` command. !!!Not yet implemented!!!</param>
+        public void PreCompile(string name, string code, bool overrideExisting = true, bool isModule = false)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                throw new Exception("Could not precompile script where name is null or white-space");
+            }
+            if (string.IsNullOrWhiteSpace(code))
+            {
+                throw new Exception("Could not precompile script where code is null or white-space");
+            }
+
+            ScriptSource source = host.ScriptEngine.CreateScriptSourceFromString(code);
+            CompiledCode cc = source.Compile();
+
+            if (compiledScripts.ContainsKey(name))
+            {
+                if (overrideExisting)
+                {
+                    compiledScripts[name] = cc;
+                }
+                else
+                {
+                    throw new Exception(string.Format("Script is already precompiled {0}"));
+                }
+            }
+            else
+            {
+                compiledScripts.Add(name, cc);
+            }
+        }
+
+        /// <summary>
+        /// Execute precompiled code and return result
+        /// </summary>
+        /// <param name="name">Unique name of the scipt</param>
+        /// <param name="otherScope">Deriving scope in which the script should be executed in</param>
+        /// <returns>Result of the script/statement</returns>
+        public dynamic ExecutePreCompiledScript(string name, ScriptScope otherScope = null)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                throw new Exception("Could not get precompiled script where name is null or white-space");
+            }
+
+            if (compiledScripts.ContainsKey(name))
+            {
+                // Execute compiled
+                var cc = compiledScripts[name];
+                return cc.Execute(otherScope ?? this.scriptScope);
+            }
+            else
+            {
+                throw new Exception(string.Format("Could not find precompiled code with the name {0}", name));
+            }
         }
         #endregion
 
