@@ -86,6 +86,45 @@ namespace Simplic.Dlr
         {
             language.Resolver.Add(resolver);
         }
+
+        /// <summary>
+        /// Add additional search path to look for modules/packages in the filesystem
+        /// </summary>
+        /// <param name="path">Path to the modules</param>
+        public void AddSearchPath(string path)
+        {
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                throw new ArgumentException("Invalid path information passed to AddSearchPath. Path must not be null or white space");
+            }
+
+            var paths = scriptEngine.GetSearchPaths();
+            paths.Add(path);
+        }
+
+        /// <summary>
+        /// Remove search path from the list of module/package paths
+        /// </summary>
+        /// <param name="path">Path to remove</param>
+        /// <returns>True if the path was found and removed, else false</returns>
+        public bool RemoveSearchPath(string path)
+        {
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                throw new ArgumentException("Invalid path information passed to AddSearchPath. Path must not be null or white space");
+            }
+
+            foreach (var exPath in scriptEngine.GetSearchPaths())
+            {
+                if (exPath.ToLower() == path.ToLower())
+                {
+                    scriptEngine.GetSearchPaths().Remove(path);
+                    return true;
+                }
+            }
+
+            return false;
+        }
         #endregion
 
         #region Public Member

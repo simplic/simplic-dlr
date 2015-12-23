@@ -5,6 +5,7 @@ using System.Text;
 using Microsoft.Scripting.Hosting;
 using IronPython.Hosting;
 using IronPython.Runtime;
+using IronPython.Runtime.Types;
 
 namespace Simplic.Dlr
 {
@@ -50,7 +51,7 @@ namespace Simplic.Dlr
         private HashSet<string> loadedAssemblies;
         private int loadedAssemblyCount;
         private IList<IDlrImportResolver> resolver;
-        string absolutePath;
+        private string absolutePath;
         #endregion
 
         #region Constructor
@@ -114,11 +115,13 @@ namespace Simplic.Dlr
             // Check if is build in module or clr module (type in assembly)
             if (buildInModules.Contains(moduleName) || clrModules.Contains(moduleName))
             {
-                return IronPython.Modules.Builtin.__import__(context, moduleName, globals, locals, fromlist, -1);
+                var newmod = IronPython.Modules.Builtin.__import__(context, moduleName, globals, locals, fromlist, -1);
+
+                return newmod;
             }
             #endregion
 
-            /*            
+            /*
             Import rules for Python modules and packages:
 
             ---
@@ -185,7 +188,7 @@ namespace Simplic.Dlr
                     Console.WriteLine("Try import package: {0}", absolutePackagePath);
                 }
 
-                element++;            
+                element++;
             }
 
 
@@ -209,6 +212,7 @@ namespace Simplic.Dlr
                 CompiledCode compiled = source.Compile();
 
                 ScriptScope scope = scriptEngine.CreateScope();
+
                 compiled.Execute(scope);
                 Microsoft.Scripting.Runtime.Scope ret = Microsoft.Scripting.Hosting.Providers.HostingHelpers.GetScope(scope);
 
@@ -216,8 +220,11 @@ namespace Simplic.Dlr
             }
 
             // In case that no rule could resolve the import, let's try IronPython to resolve it on his own
-            return IronPython.Modules.Builtin.__import__(context, moduleName, globals, locals, fromlist, -1);
+            var module = IronPython.Modules.Builtin.__import__(context, moduleName, globals, locals, fromlist, -1);
+
+            return module;
         }
+
         #endregion
 
         #region Public Methods
@@ -229,7 +236,6 @@ namespace Simplic.Dlr
         public ScriptEngine CreateEngine(ScriptRuntime runtime)
         {
             scriptEngine = runtime.GetEngineByTypeName(typeof(PythonContext).AssemblyQualifiedName);
-
             return scriptEngine;
         }
 

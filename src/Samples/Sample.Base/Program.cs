@@ -13,7 +13,8 @@ namespace Sample.Base
             // Create simple host environment
             var host = new DlrHost<IronPythonLanguage>(new IronPythonLanguage());
 
-            host.DefaultScope.Execute("class TestClass(object):\r\n"
+            host.DefaultScope.Execute("import sys\r\n"
+                + "class TestClass(object):\r\n"
                 + "    var1 = ''\r\n"
                 + "    def doPrint(self, txt):\r\n"
                 + "        print txt\r\n"
