@@ -54,13 +54,13 @@ host.DefaultScope.Execute("print 'Hello World'");
 
 The host provides methods to add and remove search paths very easily
 
-#### Add search path to the host
+*Add search path to the host*
 
 ```csharp
     host.AddSearchPath("C:\\Python\\lib")
 ```
 
-#### Remove search path from the host
+*Remove search path from the host*
 
 ```csharp
     if (host.RemoveSearchPath('C:\\Python\\lib'))
