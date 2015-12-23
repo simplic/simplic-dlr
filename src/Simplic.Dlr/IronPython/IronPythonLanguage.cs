@@ -72,6 +72,10 @@ namespace Simplic.Dlr
             buildInModules.Add("sys");
             buildInModules.Add("clr");
             buildInModules.Add("wpf");
+            buildInModules.Add("random");
+            buildInModules.Add("md5");
+            buildInModules.Add("ssl");
+            buildInModules.Add("array");
         }
         #endregion
 
@@ -87,6 +91,14 @@ namespace Simplic.Dlr
         /// <returns></returns>
         private object ResolveImports(CodeContext context, string moduleName, PythonDictionary globals, PythonDictionary locals, PythonTuple fromlist)
         {
+            #region [Built-in modules]
+            // Check if is build in module or clr module (type in assembly)
+            if (buildInModules.Contains(moduleName))
+            {
+                return IronPython.Modules.Builtin.__import__(context, moduleName, globals, locals, fromlist, -1);
+            }
+            #endregion
+
             #region [Import .Net Namespaces]
             // Add not loaded assemblies to the import list
             if (loadedAssemblyCount != AppDomain.CurrentDomain.GetAssemblies().Length)
@@ -112,12 +124,10 @@ namespace Simplic.Dlr
                 }
             }
 
-            // Check if is build in module or clr module (type in assembly)
-            if (buildInModules.Contains(moduleName) || clrModules.Contains(moduleName))
+            // clr module (type in assembly)
+            if (clrModules.Contains(moduleName))
             {
-                var newmod = IronPython.Modules.Builtin.__import__(context, moduleName, globals, locals, fromlist, -1);
-
-                return newmod;
+                return IronPython.Modules.Builtin.__import__(context, moduleName, globals, locals, fromlist, -1);
             }
             #endregion
 
@@ -220,9 +230,7 @@ namespace Simplic.Dlr
             }
 
             // In case that no rule could resolve the import, let's try IronPython to resolve it on his own
-            var module = IronPython.Modules.Builtin.__import__(context, moduleName, globals, locals, fromlist, -1);
-
-            return module;
+            return IronPython.Modules.Builtin.__import__(context, moduleName, globals, locals, fromlist, -1);
         }
 
         #endregion
