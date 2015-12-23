@@ -20,7 +20,7 @@ just copy all needed assemblies (Simplic.Dlr, IronPython.dll, Microsoft.Scriptin
 
 ### Nuget
 
-You can find the newest and stable version at nuget: [Simplic.Dlr](https://www.nuget.org/packages/Simplic.Dlr/)
+You can find the newest and stable version at nuget: [![NuGet Status](https://nuget.org/Content/Images/packageDefaultIcon.png?style=flat)](https://www.nuget.org/packages/Simplic.Dlr/)
 
 ## Samples
 
