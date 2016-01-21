@@ -132,6 +132,17 @@ namespace Simplic.Dlr
                 return scriptScope;
             }
         }
+
+        /// <summary>
+        /// Represents the dynamic class instance
+        /// </summary>
+        public dynamic Instance
+        {
+            get
+            {
+                return instance;
+            }
+        }
         #endregion
     }
 }
