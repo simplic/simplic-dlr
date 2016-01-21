@@ -12,18 +12,18 @@ namespace Simplic.Dlr
     public interface IDlrImportResolver
     {
         /// <summary>
-        /// Resove a specific script/module
+        /// Import path
         /// </summary>
-        /// <param name="module">Module or script name</param>
-        /// <param name="engine">Script engine instance</param>
-        /// <returns>Instance of the created script source</returns>
-        ScriptSource GetScriptSource(string module, ScriptEngine engine);
+        /// <param name="path"></param>
+        /// <returns></returns>
+        string GetScriptSource(string path);
 
         /// <summary>
-        /// Get all script sources for a specific resolver
+        /// Unique resolver name
         /// </summary>
-        /// <param name="engine">Script engine instance</param>
-        /// <returns>List of script sources</returns>
-        ScriptSource[] GetScripts(ScriptEngine engine);
+        Guid UniqueResolverId
+        {
+            get;
+        }
     }
 }

@@ -44,5 +44,13 @@ namespace Simplic.Dlr
         {
             get;
         }
+
+        /// <summary>
+        /// Import resolver list
+        /// </summary>
+        IList<IDlrImportResolver> Resolver
+        {
+            get;
+        }
     }
 }

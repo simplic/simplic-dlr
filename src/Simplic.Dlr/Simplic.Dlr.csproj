@@ -73,7 +73,9 @@
   <ItemGroup>
     <Compile Include="Helper\Helper.cs" />
     <Compile Include="IDlrHost.cs" />
-    <Compile Include="IronPython\GenericImporter.cs" />
+    <Compile Include="Import\SourceStringContentProvider.cs" />
+    <Compile Include="Import\GenericModuleCodeType.cs" />
+    <Compile Include="Import\GenericImporter.cs" />
     <Compile Include="Scope\DlrClass.cs" />
     <Compile Include="DlrHost.cs" />
     <Compile Include="Scope\DlrScriptScope.cs" />

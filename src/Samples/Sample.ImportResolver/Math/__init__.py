@@ -1,2 +1,2 @@
-﻿# Sample math package
-import Math2
+﻿
+print ('Import: /Math/__init__.py')

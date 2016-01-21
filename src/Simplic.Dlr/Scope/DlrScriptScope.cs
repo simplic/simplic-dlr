@@ -189,6 +189,30 @@ namespace Simplic.Dlr
                 throw new Exception(string.Format("Could not find precompiled code with the name {0}", name));
             }
         }
+
+        /// <summary>
+        /// Execute a script. The script will be searched in all resolvers and the default search paths
+        /// </summary>
+        /// <param name="path">Script path</param>
+        /// <returns>Result of the script execution</returns>
+        public dynamic ExecuteScript(string path)
+        {
+            foreach (var resolver in host.Resolver)
+            {
+                try
+                {
+                    string result = resolver.GetScriptSource(path);
+                    if (!string.IsNullOrWhiteSpace(result))
+                    {
+                        return Execute(result, true);
+                    }
+                }
+                catch { /* Ignore exception here */ }
+            }
+
+            var source = host.ScriptEngine.CreateScriptSourceFromFile(path);
+            return source.Execute(scriptScope);
+        }
         #endregion
 
         #endregion

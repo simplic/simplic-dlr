@@ -16,18 +16,23 @@ namespace Sample.ImportResolver
             // Create simple host environment
             var host = new DlrHost<IronPythonLanguage>(new IronPythonLanguage());
 
+            host.AddSearchPath(@"C:\Program Files (x86)\IronPython 2.7\Lib\");
+
             // Add some resolver for embedded scripts/modules
             host.AddImportResolver(new EmbeddedModuleResolver());
+
+            // Execute script by path
+            var val = host.DefaultScope.ExecuteScript("FileSample/FileSample.py");
+            Console.WriteLine("Script value: " + val.ToString());
 
             // Import some classes and use them
             host.DefaultScope.Execute(""
                 //+ "import sys" + "\r\n"
-                + "import Sample.ImportResolver.Math" + "\r\n" // <- Import which will be resolved by using Simplic.Dlr resolving
+                + "import Math.MathImpl" + "\r\n"
                 //+ "from System import Console" + "\r\n"
-                //+ "from System.IO import File" + "\r\n"
                 + "" + "\r\n"
                 + "" + "\r\n"
-                //+ "Console.WriteLine('Hello World')" + "\r\n"
+                //+ "Console.WriteLine(str(Math.add(1, 2)))" + "\r\n"
                 + "" + "\r\n"
                 + "" + "\r\n"
                 + "" + "\r\n");
@@ -42,28 +47,17 @@ namespace Sample.ImportResolver
     /// </summary>
     public class EmbeddedModuleResolver : IDlrImportResolver
     {
-        public ScriptSource[] GetScripts(ScriptEngine engine)
+        public Guid UniqueResolverId
         {
-            return new ScriptSource[] { };
+            get
+            {
+                return Guid.Parse("124ec66d-ffc7-48c3-a9d5-bc15de97b540");
+            }
         }
 
-        public ScriptSource GetScriptSource(string moudleName, ScriptEngine engine)
+        public string GetScriptSource(string path)
         {
-            var module = GetEmbedded(moudleName + ".__init__.py");
-
-            if (module != null)
-            {
-                return engine.CreateScriptSourceFromString(module, Microsoft.Scripting.SourceCodeKind.AutoDetect);
-            }
-
-            var script = GetEmbedded(moudleName + ".py");
-
-            if (script != null)
-            {
-                return engine.CreateScriptSourceFromString(module, Microsoft.Scripting.SourceCodeKind.Expression);
-            }
-
-            return null;
+            return GetEmbedded("Sample.ImportResolver." + path.Replace("/", "."));
         }
 
         public string GetEmbedded(string module)

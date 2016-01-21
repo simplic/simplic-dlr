@@ -16,5 +16,4 @@ def mul(x, y):
 def div(x, y):
     return x / y;
 
-
-
+print ('Import Math2.py!')

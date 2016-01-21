@@ -16,6 +16,7 @@ namespace Simplic.Dlr
         private ScriptEngine scriptEngine;
         private ScriptRuntimeSetup runtimeSetup;
         private ScriptRuntime runtime;
+        private IList<IDlrImportResolver> resolver;
         private T language;
 
         private HashSet<string> loadedAssemblies;
@@ -31,6 +32,7 @@ namespace Simplic.Dlr
         {
             this.language = language;
             loadedAssemblies = new HashSet<string>();
+            resolver = new List<IDlrImportResolver>();
 
             // Create runtime
             this.runtimeSetup = language.CreateRuntime();
@@ -39,8 +41,8 @@ namespace Simplic.Dlr
             // Create engine
             scriptEngine = language.CreateEngine(this.runtime);
 
-            // 
-            language.InitializeResolver();
+            //TODO: Refactor this:
+            GenericImportModule.Host = (this as DlrHost<IronPythonLanguage>);
 
             // create default scope
             defaultScope = new DlrScriptScope(this);
@@ -79,15 +81,6 @@ namespace Simplic.Dlr
         }
 
         /// <summary>
-        /// Add a resolver instance to the resolver list
-        /// </summary>
-        /// <param name="resolver"></param>
-        public void AddImportResolver(IDlrImportResolver resolver)
-        {
-            language.Resolver.Add(resolver);
-        }
-
-        /// <summary>
         /// Add additional search path to look for modules/packages in the filesystem
         /// </summary>
         /// <param name="path">Path to the modules</param>
@@ -100,6 +93,7 @@ namespace Simplic.Dlr
 
             var paths = scriptEngine.GetSearchPaths();
             paths.Add(path);
+            scriptEngine.SetSearchPaths(paths);
         }
 
         /// <summary>
@@ -124,6 +118,16 @@ namespace Simplic.Dlr
             }
 
             return false;
+        }   
+        
+        /// <summary>
+        /// Add a resolver instance to the resolver list
+        /// </summary>
+        /// <param name="resolver"></param>
+        public void AddImportResolver(IDlrImportResolver resolver)
+        {
+            this.resolver.Add(resolver);
+            AddSearchPath("resolver:" + resolver.UniqueResolverId.ToString() + "|");
         }
         #endregion
 
@@ -147,6 +151,17 @@ namespace Simplic.Dlr
             get
             {
                 return scriptEngine;
+            }
+        }
+
+        /// <summary>
+        /// Import resolver list
+        /// </summary>
+        public IList<IDlrImportResolver> Resolver
+        {
+            get
+            {
+                return resolver;
             }
         }
         #endregion

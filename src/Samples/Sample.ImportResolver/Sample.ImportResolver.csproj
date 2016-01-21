@@ -83,11 +83,17 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Math\Math2.py" />
-    <EmbeddedResource Include="Math\__init__.py" />
+    <EmbeddedResource Include="Math\MathImpl\Math2.py" />
+    <EmbeddedResource Include="Math\MathImpl\__init__.py" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Math\__init__.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="FileSample\FileSample.py" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
