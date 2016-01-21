@@ -54,7 +54,7 @@ namespace Sample.Wrapper
          var host = new DlrHost<IronPythonLanguage>(new IronPythonLanguage());
 
          // Define class
-         host.DefaultScope.Execute("class MathClass(object):\r\n"
+         host.DefaultScope.ExecuteExpression("class MathClass(object):\r\n"
              + ""
              + "    def add(self, x, y):\r\n"
              + "        return x + y\r\n"

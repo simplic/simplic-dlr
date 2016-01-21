@@ -1,4 +1,5 @@
-﻿using Microsoft.Scripting.Hosting;
+﻿using IronPython.Runtime;
+using Microsoft.Scripting.Hosting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -43,7 +44,7 @@ namespace Simplic.Dlr
         /// <param name="expression">Script expression as a string</param>
         /// <param name="cache">True if the expression should be cached</param>
         /// <returns>Result of the script expression as dynamic</returns>
-        public dynamic Execute(string expression, bool cache = true)
+        public dynamic ExecuteExpression(string expression, bool cache = true)
         {
             if (expression == null)
             {
@@ -125,6 +126,41 @@ namespace Simplic.Dlr
         }
         #endregion
 
+        #region [Call functions]
+        /// <summary>
+        /// Call a function within the current scope
+        /// </summary>
+        /// <param name="name">Name of the function</param>
+        /// <param name="parameter">List of parameter</param>
+        /// <returns>Return value of the function</returns>
+        public dynamic CallFunction(string name, params object[] parameter)
+        {
+            var method = GetVariable(name);
+
+            if (parameter == null)
+            {
+                return method();
+            }
+            else if (parameter.Length == 1) { return method(parameter[0]); }
+            else if (parameter.Length == 2) { return method(parameter[0], parameter[1]); }
+            else if (parameter.Length == 3) { return method(parameter[0], parameter[1], parameter[2]); }
+            else if (parameter.Length == 4) { return method(parameter[0], parameter[1], parameter[2], parameter[3]); }
+            else if (parameter.Length == 5) { return method(parameter[0], parameter[1], parameter[2], parameter[3], parameter[4]); }
+            else if (parameter.Length == 6) { return method(parameter[0], parameter[1], parameter[2], parameter[3], parameter[4], parameter[5]); }
+            else if (parameter.Length == 7) { return method(parameter[0], parameter[1], parameter[2], parameter[3], parameter[4], parameter[5], parameter[6]); }
+            else if (parameter.Length == 8) { return method(parameter[0], parameter[1], parameter[2], parameter[3], parameter[4], parameter[5], parameter[6], parameter[7]); }
+            else if (parameter.Length == 9) { return method(parameter[0], parameter[1], parameter[2], parameter[3], parameter[4], parameter[5], parameter[6], parameter[7], parameter[8]); }
+            else if (parameter.Length == 10) { return method(parameter[0], parameter[1], parameter[2], parameter[3], parameter[4], parameter[5], parameter[6], parameter[7], parameter[8], parameter[9]); }
+            else if (parameter.Length == 11) { return method(parameter[0], parameter[1], parameter[2], parameter[3], parameter[4], parameter[5], parameter[6], parameter[7], parameter[8], parameter[9], parameter[10]); }
+            else if (parameter.Length == 12) { return method(parameter[0], parameter[1], parameter[2], parameter[3], parameter[4], parameter[5], parameter[6], parameter[7], parameter[8], parameter[9], parameter[10], parameter[11]); }
+            else if (parameter.Length == 13) { return method(parameter[0], parameter[1], parameter[2], parameter[3], parameter[4], parameter[5], parameter[6], parameter[7], parameter[8], parameter[9], parameter[10], parameter[11], parameter[12]); }
+            else if (parameter.Length == 14) { return method(parameter[0], parameter[1], parameter[2], parameter[3], parameter[4], parameter[5], parameter[6], parameter[7], parameter[8], parameter[9], parameter[10], parameter[11], parameter[12], parameter[13]); }
+            else if (parameter.Length == 15) { return method(parameter[0], parameter[1], parameter[2], parameter[3], parameter[4], parameter[5], parameter[6], parameter[7], parameter[8], parameter[9], parameter[10], parameter[11], parameter[12], parameter[13], parameter[14]); }
+
+            throw new Exception("Maximal 15 paramter are currently allowed");
+        }
+        #endregion
+
         #region [PreCompile Code]
         /// <summary>
         /// Precompile code and store it in a dictioanry
@@ -134,7 +170,7 @@ namespace Simplic.Dlr
         /// <param name="overrideExisting">True if existing scripts with the same name can be overriden. If set to false and the
         /// script alredy exists, an exception will be thrown</param>
         /// <param name="isModule">Register also as module, so it can be load with the `import` command. !!!Not yet implemented!!!</param>
-        public void PreCompile(string name, string code, bool overrideExisting = true, bool isModule = false)
+        public void PreCompileCode(string name, string code, bool overrideExisting = true, bool isModule = false)
         {
             if (string.IsNullOrWhiteSpace(name))
             {
@@ -171,7 +207,7 @@ namespace Simplic.Dlr
         /// <param name="name">Unique name of the scipt</param>
         /// <param name="otherScope">Deriving scope in which the script should be executed in</param>
         /// <returns>Result of the script/statement</returns>
-        public dynamic ExecutePreCompiledScript(string name, ScriptScope otherScope = null)
+        public dynamic ExecutePreCompiledCode(string name, ScriptScope otherScope = null)
         {
             if (string.IsNullOrWhiteSpace(name))
             {
@@ -204,7 +240,7 @@ namespace Simplic.Dlr
                     string result = resolver.GetScriptSource(path);
                     if (!string.IsNullOrWhiteSpace(result))
                     {
-                        return Execute(result, true);
+                        return ExecuteExpression(result, true);
                     }
                 }
                 catch { /* Ignore exception here */ }

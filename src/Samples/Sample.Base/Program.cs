@@ -13,7 +13,11 @@ namespace Sample.Base
             // Create simple host environment
             var host = new DlrHost<IronPythonLanguage>(new IronPythonLanguage());
 
-            host.DefaultScope.Execute("import sys\r\n"
+            host.DefaultScope.ExecuteExpression("import sys\r\n"
+                + "\r\n"
+                + "def sample_func(p1, p2, p3):\r\n"
+                + "    print (p1 + p2 + p3)\r\n"
+                + "\r\n"
                 + "class TestClass(object):\r\n"
                 + "    var1 = ''\r\n"
                 + "    def doPrint(self, txt):\r\n"
@@ -21,6 +25,9 @@ namespace Sample.Base
                 + ""
                 + "    def doPrintVar(self):\r\n"
                 + "        print self.var1\r\n");
+
+            // Call function
+            host.DefaultScope.CallFunction("sample_func", "v1 ", "v2 ", "v3 ");
 
             // Call via name of the method
             var instance = host.DefaultScope.CreateClassInstance("TestClass");
@@ -40,12 +47,12 @@ namespace Sample.Base
             // Cache
             System.Diagnostics.Stopwatch watch = new System.Diagnostics.Stopwatch();
             watch.Start();
-            host.DefaultScope.Execute("print 'Hello World'");
+            host.DefaultScope.ExecuteExpression("print 'Hello World'");
             watch.Stop();
             Console.WriteLine("No cached: " + watch.ElapsedMilliseconds.ToString());
 
             watch.Start();
-            host.DefaultScope.Execute("print 'Hello World'");
+            host.DefaultScope.ExecuteExpression("print 'Hello World'");
             watch.Stop();
             Console.WriteLine("Cached: " + watch.ElapsedMilliseconds.ToString());
 
