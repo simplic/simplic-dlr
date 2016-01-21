@@ -16,7 +16,7 @@ namespace Sample.Base
             host.DefaultScope.ExecuteExpression("import sys\r\n"
                 + "\r\n"
                 + "def sample_func(p1, p2, p3):\r\n"
-                + "    print (p1 + p2 + p3)\r\n"
+                + "    print (str(p1 + p2 + p3))\r\n"
                 + "\r\n"
                 + "class TestClass(object):\r\n"
                 + "    var1 = ''\r\n"
@@ -27,7 +27,7 @@ namespace Sample.Base
                 + "        print self.var1\r\n");
 
             // Call function
-            host.DefaultScope.CallFunction("sample_func", "v1 ", "v2 ", "v3 ");
+            host.DefaultScope.CallFunction("sample_func", 1, 7, 9);
 
             // Call via name of the method
             var instance = host.DefaultScope.CreateClassInstance("TestClass");
