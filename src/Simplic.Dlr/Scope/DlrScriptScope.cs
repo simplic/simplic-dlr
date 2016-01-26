@@ -1,5 +1,4 @@
-﻿using IronPython.Runtime;
-using Microsoft.Scripting.Hosting;
+﻿using Microsoft.Scripting.Hosting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,6 +16,7 @@ namespace Simplic.Dlr
         private IDlrHost host;
         private IDictionary<string, CompiledCode> cachedExpressions;
         private IDictionary<string, CompiledCode> compiledScripts;
+        private IList<string> executedScripts;
         #endregion
 
         #region Constructor
@@ -28,6 +28,7 @@ namespace Simplic.Dlr
         {
             this.host = host;
             cachedExpressions = new Dictionary<string, CompiledCode>();
+            executedScripts = new List<string>();
 
             scriptScope = host.ScriptEngine.CreateScope();
         }
@@ -44,7 +45,7 @@ namespace Simplic.Dlr
         /// <param name="expression">Script expression as a string</param>
         /// <param name="cache">True if the expression should be cached</param>
         /// <returns>Result of the script expression as dynamic</returns>
-        public dynamic ExecuteExpression(string expression, bool cache = true)
+        public dynamic Execute(string expression, bool cache = true)
         {
             if (expression == null)
             {
@@ -136,28 +137,7 @@ namespace Simplic.Dlr
         public dynamic CallFunction(string name, params object[] parameter)
         {
             var method = GetVariable(name);
-
-            if (parameter == null)
-            {
-                return method();
-            }
-            else if (parameter.Length == 1) { return method(parameter[0]); }
-            else if (parameter.Length == 2) { return method(parameter[0], parameter[1]); }
-            else if (parameter.Length == 3) { return method(parameter[0], parameter[1], parameter[2]); }
-            else if (parameter.Length == 4) { return method(parameter[0], parameter[1], parameter[2], parameter[3]); }
-            else if (parameter.Length == 5) { return method(parameter[0], parameter[1], parameter[2], parameter[3], parameter[4]); }
-            else if (parameter.Length == 6) { return method(parameter[0], parameter[1], parameter[2], parameter[3], parameter[4], parameter[5]); }
-            else if (parameter.Length == 7) { return method(parameter[0], parameter[1], parameter[2], parameter[3], parameter[4], parameter[5], parameter[6]); }
-            else if (parameter.Length == 8) { return method(parameter[0], parameter[1], parameter[2], parameter[3], parameter[4], parameter[5], parameter[6], parameter[7]); }
-            else if (parameter.Length == 9) { return method(parameter[0], parameter[1], parameter[2], parameter[3], parameter[4], parameter[5], parameter[6], parameter[7], parameter[8]); }
-            else if (parameter.Length == 10) { return method(parameter[0], parameter[1], parameter[2], parameter[3], parameter[4], parameter[5], parameter[6], parameter[7], parameter[8], parameter[9]); }
-            else if (parameter.Length == 11) { return method(parameter[0], parameter[1], parameter[2], parameter[3], parameter[4], parameter[5], parameter[6], parameter[7], parameter[8], parameter[9], parameter[10]); }
-            else if (parameter.Length == 12) { return method(parameter[0], parameter[1], parameter[2], parameter[3], parameter[4], parameter[5], parameter[6], parameter[7], parameter[8], parameter[9], parameter[10], parameter[11]); }
-            else if (parameter.Length == 13) { return method(parameter[0], parameter[1], parameter[2], parameter[3], parameter[4], parameter[5], parameter[6], parameter[7], parameter[8], parameter[9], parameter[10], parameter[11], parameter[12]); }
-            else if (parameter.Length == 14) { return method(parameter[0], parameter[1], parameter[2], parameter[3], parameter[4], parameter[5], parameter[6], parameter[7], parameter[8], parameter[9], parameter[10], parameter[11], parameter[12], parameter[13]); }
-            else if (parameter.Length == 15) { return method(parameter[0], parameter[1], parameter[2], parameter[3], parameter[4], parameter[5], parameter[6], parameter[7], parameter[8], parameter[9], parameter[10], parameter[11], parameter[12], parameter[13], parameter[14]); }
-
-            throw new Exception("Maximal 15 paramter are currently allowed");
+            return method(parameter);
         }
         #endregion
 
@@ -225,14 +205,29 @@ namespace Simplic.Dlr
                 throw new Exception(string.Format("Could not find precompiled code with the name {0}", name));
             }
         }
+        #endregion
 
+        #region [ExecuteScript]
         /// <summary>
         /// Execute a script. The script will be searched in all resolvers and the default search paths
         /// </summary>
         /// <param name="path">Script path</param>
+        /// <param name="alwaysExecute">If set to true, the script will be executed event if it was before. If set to 
+        /// false and the path was already executed, null will be returned</param>
         /// <returns>Result of the script execution</returns>
-        public dynamic ExecuteScript(string path)
+        public dynamic ExecuteScript(string path, bool alwaysExecute = false)
         {
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                throw new ArgumentException("Path can not be null or white-space in DlrScriptScope.ExecuteScript.");
+            }
+
+            // Cancel if alwaysExecute is fals and the script was already executed
+            if (!alwaysExecute && executedScripts.Any(item => item.Equals(path, StringComparison.OrdinalIgnoreCase)))
+            {
+                return null;
+            }
+
             foreach (var resolver in host.Resolver)
             {
                 try
@@ -240,7 +235,7 @@ namespace Simplic.Dlr
                     string result = resolver.GetScriptSource(path);
                     if (!string.IsNullOrWhiteSpace(result))
                     {
-                        return ExecuteExpression(result, true);
+                        return Execute(result, true);
                     }
                 }
                 catch { /* Ignore exception here */ }

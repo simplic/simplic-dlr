@@ -1,5 +1,7 @@
 ﻿using IronPython.Runtime;
+using IronPython.Runtime.Exceptions;
 using IronPython.Runtime.Operations;
+using IronPython.Runtime.Types;
 using Microsoft.Scripting;
 using Microsoft.Scripting.Runtime;
 using Microsoft.Scripting.Utils;
@@ -22,12 +24,15 @@ namespace Simplic.Dlr
             internal set;
         }
 
+        /// <summary>
+        /// Generic importer, bases on PEP 302 and the IronPython zipimporter module
+        /// </summary>
         public class genericimporter
         {
             [SpecialName]
             public static void PerformModuleReload(PythonContext context, PythonDictionary dict)
             {
-
+                InitModuleExceptions(context, dict);
             }
 
             #region Private Member
@@ -81,6 +86,8 @@ namespace Simplic.Dlr
                     throw PythonOps.TypeError("must be string, not None");
                 }
 
+                Console.WriteLine("    Path: " + pathObj.ToString());
+
                 if (!(pathObj is string))
                 {
                     throw PythonOps.TypeError("must be string, not {0}", pathObj.GetType());
@@ -118,10 +125,21 @@ namespace Simplic.Dlr
 
             private static string lastPath = "";
 
+            #region [__repr__]
+            /// <summary>
+            /// OBject representation
+            /// </summary>
+            /// <returns>__repr__ as string</returns>
             public string __repr__()
             {
-                return "";
+                if (resolver == null)
+                {
+                    return "<genericimporter object \"Invalid-Resolver\">";
+                }
+
+                return "<genericimporter object \"" + resolver.UniqueResolverId.ToString() + "\">";
             }
+            #endregion
 
             #region [find_module]
             /// <summary>
@@ -142,9 +160,10 @@ namespace Simplic.Dlr
             }
             #endregion
 
+            #region [load_module]
             public object load_module(CodeContext/*!*/ context, string fullname)
             {
-                fullname = fullname.Replace("<module>.", lastPath);
+                fullname = fullname.Replace("<module>.", lastPath + ".").Replace(".", "/");
 
                 string code = null;
                 GenericModuleCodeType moduleType;
@@ -164,6 +183,8 @@ namespace Simplic.Dlr
                         code = tempCode;
                         modpath = fullname + order.Key;
 
+                        Console.WriteLine("     IMPORT: " + modpath);
+                        
                         if ((order.Value & GenericModuleCodeType.Package) == GenericModuleCodeType.Package)
                         {
                             ispackage = true;
@@ -193,10 +214,10 @@ namespace Simplic.Dlr
 
                 // we do these here because we don't want CompileModule to initialize the module until we've set 
                 // up some additional stuff
-                dict.Add("__name__", fullname);
+                dict.Add("__name__", fullname.Split(new char[] { '/' }).Last());
                 dict.Add("__loader__", this);
                 dict.Add("__package__", null);
-
+                
                 if (ispackage)
                 {
                     // Add path
@@ -205,18 +226,41 @@ namespace Simplic.Dlr
                     List pkgpath = PythonOps.MakeList("resolver:" + resolver.UniqueResolverId + "|" + fullpath);
                     dict.Add("__path__", pkgpath);
                 }
+                else
+                {
+                    StringBuilder packageName = new StringBuilder();
+                    string[] packageParts = fullname.Split(new char[] { '/' });
+                    for (int i = 0; i < packageParts.Length - 1; i++)
+                    {
+                        if (i > 0)
+                        {
+                            packageName.Append(".");
+                        }
+
+                        packageName.Append(packageParts[i]);
+                    }
+
+                    dict.Add("__package__", packageName.ToString());
+                }
 
                 var scope = context.ModuleContext.GlobalScope;
                 scriptCode.Run(scope);
 
                 return mod;
             }
+            #endregion
 
             public string get_filename(CodeContext context, string fullname)
             {
                 return null;
             }
 
+            /// <summary>
+            /// Return True if the module specified by 'fullname' is a package and False if it isn't.
+            /// </summary>
+            /// <param name="context">CodeContext - Automatically passed by the IP-Core</param>
+            /// <param name="fullname">Full path to the module</param>
+            /// <returns>True if the module is a package</returns>
             public bool is_package(CodeContext context, string fullname)
             {
                 return true;
@@ -236,6 +280,35 @@ namespace Simplic.Dlr
             {
                 return null;
             }
+
+            #region [GenericImporterException]
+            public static PythonType GenericImporterError;
+
+            /// <summary>
+            /// Create new throwable exception
+            /// </summary>
+            /// <param name="args">Exception parameter</param>
+            /// <returns>Exception instance</returns>
+            internal static Exception MakeError(params object[] args)
+            {
+                return PythonOps.CreateThrowable(GenericImporterError, args);
+            }
+
+            /// <summary>
+            /// Initialize exception
+            /// </summary>
+            /// <param name="context"></param>
+            /// <param name="dict"></param>
+            private static void InitModuleExceptions(PythonContext context, PythonDictionary dict)
+            {
+                GenericImporterError = context.EnsureModuleException(
+                    "genericimporter.GenericImporterError",
+                    PythonExceptions.ImportError,
+                    typeof(PythonExceptions.BaseException),
+                    dict, "GenericImporterError", "genericimporter",
+                    msg => new ImportException(msg));
+            }
+            #endregion
         }
     }
 }

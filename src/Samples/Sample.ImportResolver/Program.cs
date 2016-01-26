@@ -26,7 +26,7 @@ namespace Sample.ImportResolver
             Console.WriteLine("Script value: " + val.ToString());
 
             // Import some classes and use them
-            host.DefaultScope.ExecuteExpression(""
+            host.DefaultScope.Execute(""
                 //+ "import sys" + "\r\n"
                 + "import Math.MathImpl" + "\r\n"
                 //+ "from System import Console" + "\r\n"
