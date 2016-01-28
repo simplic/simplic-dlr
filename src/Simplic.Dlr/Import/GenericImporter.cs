@@ -7,6 +7,7 @@ using Microsoft.Scripting.Runtime;
 using Microsoft.Scripting.Utils;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -37,6 +38,8 @@ namespace Simplic.Dlr
 
             #region Private Member
             private IDlrImportResolver resolver;
+            private string _rel_path;
+            private string _prefix;
             #endregion
 
             #region [Static]
@@ -70,11 +73,13 @@ namespace Simplic.Dlr
 
             public genericimporter()
             {
-
+                
             }
 
             public genericimporter(CodeContext/*!*/ context, object pathObj, [Microsoft.Scripting.ParamDictionary] IDictionary<object, object> kwArgs)
             {
+                PlatformAdaptationLayer pal = context.LanguageContext.DomainManager.Platform;
+
                 // Can only be used, if a host is set
                 if (Host == null || Host.Resolver.Count == 0)
                 {
@@ -99,28 +104,24 @@ namespace Simplic.Dlr
                 }
 
                 string path = pathObj.ToString();
-                Guid resolverId = Guid.Empty;
 
-                // Try to find resolver
-                if (path.StartsWith("resolver:"))
+                if (string.IsNullOrWhiteSpace(path))
                 {
-                    path = path.Replace("resolver:", "");
-
-                    int pipeIndex = path.IndexOf("|");
-
-                    if (pipeIndex > 0)
-                    {
-                        path = path.Substring(0, pipeIndex);
-
-                        if (Guid.TryParse(path, out resolverId))
-                        {
-                            lastPath = pathObj.ToString().Replace("resolver:", "");
-                            lastPath = lastPath.Remove(0, Guid.Empty.ToString().Length + 1);
-
-                            resolver = Host.Resolver.Where(item => item.UniqueResolverId == resolverId).FirstOrDefault();
-                        }
-                    }
+                    throw new Exception("Could not resolve empty, whitespace or null path");
                 }
+
+                string buf = path.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+                string input = buf;
+
+                _prefix = input.Replace(path, string.Empty);
+                // add trailing SEP
+                if (!string.IsNullOrEmpty(_prefix) && !_prefix.EndsWith(Path.DirectorySeparatorChar.ToString()))
+                {
+                    _prefix = _prefix.Substring(1);
+                    _prefix += Path.DirectorySeparatorChar;
+                }
+
+                _rel_path = pathObj.ToString();
             }
 
             private static string lastPath = "";
@@ -132,12 +133,7 @@ namespace Simplic.Dlr
             /// <returns>__repr__ as string</returns>
             public string __repr__()
             {
-                if (resolver == null)
-                {
-                    return "<genericimporter object \"Invalid-Resolver\">";
-                }
-
-                return "<genericimporter object \"" + resolver.UniqueResolverId.ToString() + "\">";
+                return "<genericimporter object \"" + this.GetType().ToString() + "\">";
             }
             #endregion
 
@@ -151,20 +147,36 @@ namespace Simplic.Dlr
             /// <returns>If resolver is not null, this will be returned, else null</returns>
             public object find_module(CodeContext/*!*/ context, string fullname, params object[] args)
             {
-                if (resolver == null)
+                // Set module
+                if (fullname.Contains("<module>"))
                 {
-                    return null;
+                    throw new Exception("Why, why does fullname contains <module>?");
                 }
 
-                return this;
+                // Find resolver
+                foreach (var resolver in Host.Resolver)
+                {
+                    var res = resolver.GetModuleInformation(fullname);
+
+                    // If this script could be resolved by some resolver
+                    if (res != ResolvedType.None)
+                    {
+                        this.resolver = resolver;
+                        return this;
+                    }
+                }
+
+                return null;
             }
             #endregion
-
+            private string GetSubName(string fullname)
+            {
+                string[] items = fullname.Split(new char[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
+                return items[items.Length - 1];
+            }
             #region [load_module]
             public object load_module(CodeContext/*!*/ context, string fullname)
             {
-                fullname = fullname.Replace("<module>.", lastPath + ".").Replace(".", "/");
-
                 string code = null;
                 GenericModuleCodeType moduleType;
                 bool ispackage = false;
@@ -175,7 +187,7 @@ namespace Simplic.Dlr
                 // Go through available import types by search-order
                 foreach (var order in _search_order)
                 {
-                    string tempCode = resolver.GetScriptSource(fullname + order.Key);
+                    string tempCode = this.resolver.GetScriptSource(fullname + order.Key);
 
                     if (tempCode != null)
                     {
@@ -184,7 +196,7 @@ namespace Simplic.Dlr
                         modpath = fullname + order.Key;
 
                         Console.WriteLine("     IMPORT: " + modpath);
-                        
+
                         if ((order.Value & GenericModuleCodeType.Package) == GenericModuleCodeType.Package)
                         {
                             ispackage = true;
@@ -214,16 +226,17 @@ namespace Simplic.Dlr
 
                 // we do these here because we don't want CompileModule to initialize the module until we've set 
                 // up some additional stuff
-                dict.Add("__name__", fullname.Split(new char[] { '/' }).Last());
+                dict.Add("__name__", fullname);
                 dict.Add("__loader__", this);
                 dict.Add("__package__", null);
-                
+
                 if (ispackage)
                 {
                     // Add path
-                    string fullpath = fullname.Replace(".", "/");
+                    string subname = GetSubName(fullname);
+                    string fullpath = string.Format(fullname.Replace(".", "/"));
 
-                    List pkgpath = PythonOps.MakeList("resolver:" + resolver.UniqueResolverId + "|" + fullpath);
+                    List pkgpath = PythonOps.MakeList(fullpath);
                     dict.Add("__path__", pkgpath);
                 }
                 else
@@ -240,9 +253,9 @@ namespace Simplic.Dlr
                         packageName.Append(packageParts[i]);
                     }
 
-                    dict.Add("__package__", packageName.ToString());
+                    dict["__package__"] = packageName.ToString();
                 }
-
+                
                 var scope = context.ModuleContext.GlobalScope;
                 scriptCode.Run(scope);
 
@@ -255,6 +268,7 @@ namespace Simplic.Dlr
                 return null;
             }
 
+            #region [is_package]
             /// <summary>
             /// Return True if the module specified by 'fullname' is a package and False if it isn't.
             /// </summary>
@@ -263,23 +277,56 @@ namespace Simplic.Dlr
             /// <returns>True if the module is a package</returns>
             public bool is_package(CodeContext context, string fullname)
             {
-                return true;
-            }
+                foreach (var resolver in Host.Resolver)
+                {
+                    var res = resolver.GetModuleInformation(fullname);
 
+                    // If this script could be resolved by some resolver
+                    if (res == ResolvedType.Package)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+            #endregion
+
+            #region [get_data]
             public string get_data(CodeContext context, string path)
             {
                 return null;
             }
+            #endregion
 
+            #region [get_code/get_source]
             public string get_code(CodeContext context, string fullname)
             {
                 return "";
             }
 
+            /// <summary>
+            /// Get source ccode
+            /// </summary>
+            /// <param name="context"></param>
+            /// <param name="fullname"></param>
+            /// <returns></returns>
             public string get_source(CodeContext context, string fullname)
             {
+                foreach (var resolver in Host.Resolver)
+                {
+                    var res = resolver.GetModuleInformation(fullname);
+
+                    // If this script could be resolved by some resolver
+                    if (res != ResolvedType.None)
+                    {
+                        return resolver.GetScriptSource(fullname);
+                    }
+                }
+
                 return null;
             }
+            #endregion
 
             #region [GenericImporterException]
             public static PythonType GenericImporterError;

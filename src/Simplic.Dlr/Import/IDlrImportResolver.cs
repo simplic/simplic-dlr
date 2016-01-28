@@ -44,14 +44,6 @@ namespace Simplic.Dlr
         /// </summary>
         /// <param name="path">Module name, package path or script path (ends with .py)</param>
         /// <returns>Type of the script</returns>
-        ResolvedType GetType(string path);
-
-        /// <summary>
-        /// Unique resolver name
-        /// </summary>
-        Guid UniqueResolverId
-        {
-            get;
-        }
+        ResolvedType GetModuleInformation(string path);
     }
 }

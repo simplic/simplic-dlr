@@ -47,20 +47,48 @@ namespace Sample.ImportResolver
     /// </summary>
     public class EmbeddedModuleResolver : IDlrImportResolver
     {
-        public Guid UniqueResolverId
-        {
-            get
-            {
-                return Guid.Parse("124ec66d-ffc7-48c3-a9d5-bc15de97b540");
-            }
-        }
-
+        /// <summary>
+        /// Get the script source. If the script was not found, null has to be returned
+        /// </summary>
+        /// <param name="path">Path to the script</param>
+        /// <returns>Null if no code was found, else the script code</returns>
         public string GetScriptSource(string path)
         {
             return GetEmbedded("Sample.ImportResolver." + path.Replace("/", "."));
         }
 
-        public string GetEmbedded(string module)
+        /// <summary>
+        /// Resolve the type of the path, for example this may contains some package, module or nothing
+        /// </summary>
+        /// <param name="path">Path to the package, module</param>
+        /// <returns>Type of the destination</returns>
+        public ResolvedType GetModuleInformation(string path)
+        {
+            string dottedPath = path.Replace("/", ".");
+
+            if (path.EndsWith(".py"))
+            {
+                if (GetEmbedded("Sample.ImportResolver." + dottedPath) != null)
+                {
+                    return ResolvedType.Module;
+                }
+            }
+            else
+            {
+                if (GetEmbedded("Sample.ImportResolver." + dottedPath + ".__init__.py") != null)
+                {
+                    return ResolvedType.Package;
+                }
+                else if(GetEmbedded("Sample.ImportResolver." + dottedPath + ".py") != null)
+                {
+                    return ResolvedType.Module;
+                }
+            }
+
+            return ResolvedType.None;
+        }
+
+        private string GetEmbedded(string module)
         {
             try
             {
