@@ -244,6 +244,28 @@ namespace Simplic.Dlr
             var source = host.ScriptEngine.CreateScriptSourceFromFile(path);
             return source.Execute(scriptScope);
         }
+
+        /// <summary>
+        /// Returns whether a script was executed over `ExecuteScript`
+        /// </summary>
+        /// <param name="path">Path to the script</param>
+        /// <returns>True if the script was executed</returns>
+        public bool IsScriptPathCached(string path)
+        {
+            return executedScripts.Any(item => item.Equals(path, StringComparison.OrdinalIgnoreCase));
+        }
+
+        /// <summary>
+        /// Remove path from cache, so that a script from ExecuteScript will be executed the next time without using alwaysExecute = true
+        /// </summary>
+        /// <param name="path">Path to the script</param>
+        public void RemoveChachedScriptPath(string path)
+        {
+            if (executedScripts.Any(item => item.Equals(path, StringComparison.OrdinalIgnoreCase)))
+            {
+                executedScripts.Remove(path);
+            }
+        }
         #endregion
 
         #endregion
