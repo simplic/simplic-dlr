@@ -49,8 +49,6 @@ namespace Simplic.Dlr
         private HashSet<string> buildInModules;
         private HashSet<string> clrModules;
         private HashSet<string> loadedAssemblies;
-        private int loadedAssemblyCount;
-        private string absolutePath;
         #endregion
 
         #region Constructor
@@ -63,8 +61,7 @@ namespace Simplic.Dlr
             buildInModules = new HashSet<string>();
             clrModules = new HashSet<string>();
             loadedAssemblies = new HashSet<string>();
-            loadedAssemblyCount = 0;
-            absolutePath = "";
+            UseAssemblyAutodetection = true;
 
             EnableZipImporter = false;
 
@@ -72,10 +69,6 @@ namespace Simplic.Dlr
             buildInModules.Add("sys");
             buildInModules.Add("clr");
             buildInModules.Add("wpf");
-            buildInModules.Add("random");
-            buildInModules.Add("md5");
-            buildInModules.Add("ssl");
-            buildInModules.Add("array");
         }
         #endregion
 
@@ -93,6 +86,10 @@ namespace Simplic.Dlr
         {
             scriptEngine = runtime.GetEngineByTypeName(typeof(PythonContext).AssemblyQualifiedName);
 
+            // Override import functionality
+            ScriptScope scope = IronPython.Hosting.Python.GetBuiltinModule(scriptEngine);
+            scope.SetVariable("__import__", new ImportDelegate(ResolveImport));
+
             var sysScope = scriptEngine.GetSysModule();
             List path_hooks = sysScope.GetVariable("path_hooks");
 
@@ -108,7 +105,7 @@ namespace Simplic.Dlr
                     {
                         path_hooks.RemoveAt(i);
                     }
-                    
+
                 }
             }
 
@@ -116,9 +113,58 @@ namespace Simplic.Dlr
             path_hooks.Add(genericimporter);
 
             sysScope.SetVariable("path_hooks", path_hooks);
-            
+
             return scriptEngine;
         }
+
+        #region [ResolveImport]
+        /// <summary>
+        /// Resolve an iron python import. If no module in script or script ui could be found, the method will try to resolve the module
+        /// over the default import system from iron python
+        /// </summary>
+        /// <param name="context">Code context (current script)</param>
+        /// <param name="moduleName">Name of the module to import</param>
+        /// <param name="globals"></param>
+        /// <param name="locals"></param>
+        /// <param name="tuple"></param>
+        /// <param name="fromlist"></param>
+        /// <returns>Dynamic script scope containing the module</returns>
+        private object ResolveImport(CodeContext context, string moduleName, PythonDictionary globals, PythonDictionary locals, PythonTuple fromlist)
+        {
+            var builtin = IronPython.Modules.Builtin.__import__(context, moduleName, globals, locals, fromlist, 0);
+
+            // Try to load all not loaded assembly and call import again
+            if (UseAssemblyAutodetection && Microsoft.Scripting.Runtime.LightExceptions.IsLightException(builtin))
+            {
+                foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+                {
+                    if (!loadedAssemblies.Contains(assembly.FullName))
+                    {
+                        scriptEngine.Runtime.LoadAssembly(assembly);
+                        loadedAssemblies.Add(assembly.FullName);
+
+                        foreach (var referenced in assembly.GetReferencedAssemblies())
+                        {
+                            if (!loadedAssemblies.Contains(referenced.FullName))
+                            {
+                                try
+                                {
+                                    loadedAssemblies.Add(referenced.FullName);
+                                    var refAsm = System.Reflection.Assembly.Load(referenced);
+                                    scriptEngine.Runtime.LoadAssembly(refAsm);
+                                }
+                                catch { /*Swallow*/ }
+                            }
+                        }
+                    }
+                }
+
+                builtin = IronPython.Modules.Builtin.__import__(context, moduleName, globals, locals, fromlist, 0);
+            }
+
+            return builtin;
+        }
+        #endregion
 
         /// <summary>
         /// Create new runtime setup
@@ -152,6 +198,15 @@ namespace Simplic.Dlr
         /// Enable or disable zip-importer. By default it is disabled
         /// </summary>
         public bool EnableZipImporter
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Autodetect assemblies on importing scripts
+        /// </summary>
+        public bool UseAssemblyAutodetection
         {
             get;
             set;

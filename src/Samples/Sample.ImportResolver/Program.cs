@@ -24,14 +24,12 @@ namespace Sample.ImportResolver
             // Execute script by path
             var val = host.DefaultScope.ExecuteScript("FileSample/FileSample.py");
             Console.WriteLine("Script value: " + val.ToString());
-
-            var d = AppDomain.CurrentDomain.GetAssemblies().Where(item => item.FullName.Contains("Simplic.Dlr")).FirstOrDefault();
-            host.ScriptEngine.Runtime.LoadAssembly(d);
+            
 
             // Import some classes and use them
             host.DefaultScope.Execute(""
                 // + "from System import Console" + "\r\n"
-                //+ "import Math.MathImpl" + "\r\n"
+                + "import Math.MathImpl" + "\r\n"
                 + "import Simplic.Dlr" + "\r\n"
                 + "" + "\r\n"
                 //+ "Console.WriteLine(str(Math.add(1, 2)))" + "\r\n"

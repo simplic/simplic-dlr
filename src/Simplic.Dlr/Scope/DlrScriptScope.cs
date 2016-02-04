@@ -93,7 +93,7 @@ namespace Simplic.Dlr
         /// <returns>Instance of a dlr class containing dlr meta class</returns>
         public DlrClass CreateClassInstance(string className, params object[] parameter)
         {
-            return new DlrClass(this, className);
+            return new DlrClass(this, className, parameter);
         }
 
         #region [Variable]
@@ -235,10 +235,19 @@ namespace Simplic.Dlr
                     string result = resolver.GetScriptSource(path);
                     if (!string.IsNullOrWhiteSpace(result))
                     {
+                        executedScripts.Add(path);
                         return Execute(result, true);
                     }
                 }
-                catch { /* Ignore exception here */ }
+                catch
+                {
+                    if (executedScripts.Contains(path))
+                    {
+                        executedScripts.Add(path);
+                    }
+
+                    throw;
+                }
             }
 
             var source = host.ScriptEngine.CreateScriptSourceFromFile(path);

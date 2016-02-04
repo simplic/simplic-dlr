@@ -36,9 +36,6 @@ namespace Simplic.Dlr
 
             // Create runtime
             this.runtimeSetup = language.CreateRuntime();
-            runtimeSetup.DebugMode = false;
-            runtimeSetup.Options["Frames"] = true;
-            runtimeSetup.Options["FullFrames"] = true;
             this.runtime = new ScriptRuntime(this.runtimeSetup);
 
             // Create engine

@@ -143,26 +143,33 @@ namespace Simplic.Dlr
             /// <returns>If resolver is not null, this will be returned, else null</returns>
             public object find_module(CodeContext/*!*/ context, string fullname, params object[] args)
             {
-                // Set module
-                if (fullname.Contains("<module>"))
+                try
                 {
-                    throw new Exception("Why, why does fullname contains <module>?");
-                }
-
-                // Find resolver
-                foreach (var resolver in Host.Resolver)
-                {
-                    var res = resolver.GetModuleInformation(fullname);
-
-                    // If this script could be resolved by some resolver
-                    if (res != ResolvedType.None)
+                    // Set module
+                    if (fullname.Contains("<module>"))
                     {
-                        this.resolver = resolver;
-                        return this;
+                        throw new Exception("Why, why does fullname contains <module>?");
                     }
-                }
 
-                return null;
+                    // Find resolver
+                    foreach (var resolver in Host.Resolver)
+                    {
+                        var res = resolver.GetModuleInformation(fullname);
+
+                        // If this script could be resolved by some resolver
+                        if (res != ResolvedType.None)
+                        {
+                            this.resolver = resolver;
+                            return this;
+                        }
+                    }
+
+                    return null;
+                }
+                catch (Exception ex)
+                {
+                    throw new ImportException("Error in generic importer.", ex);
+                }
             }
             #endregion
 
@@ -222,7 +229,7 @@ namespace Simplic.Dlr
                     // Add path
                     string fullpath = string.Format(fullname.Replace(".", "/"));
                     List pkgpath = PythonOps.MakeList(fullpath);
-                   
+
                     if (dict.ContainsKey("__path__"))
                     {
                         dict["__path__"] = pkgpath;
@@ -248,7 +255,7 @@ namespace Simplic.Dlr
 
                     dict["__package__"] = packageName.ToString();
                 }
-                
+
                 scriptCode.Run(mod.Scope);
                 return mod;
             }
