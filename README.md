@@ -21,11 +21,13 @@ just copy all needed assemblies (Simplic.Dlr, IronPython.dll, Microsoft.Scriptin
 
 _Be sure you use the IronPython dlls from the `dependencies` directory._
 
-### Nuget
+### Nuget [not up-to-date]
 
 You can find the newest and stable version at nuget.
 
 [![NuGet Status](http://img.shields.io/nuget/v/Simplic.Dlr.svg?style=flat)](https://www.nuget.org/packages/Simplic.Dlr/)
+
+_Please use a self compiled version._
 
 ## Samples
 
