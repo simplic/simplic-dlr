@@ -207,16 +207,12 @@ namespace Simplic.Dlr
                     return null;
                 }
 
-                var scriptCode = context.LanguageContext.CompileSourceCode
-                    (
-                        new SourceUnit(context.LanguageContext, new SourceStringContentProvider(code), modpath, SourceCodeKind.AutoDetect),
-                        new IronPython.Compiler.PythonCompilerOptions() { },
-                        ErrorSink.Default
-                    );
+                ScriptCode scriptCode = null;
 
-                // initialize module
-                mod = context.LanguageContext.InitializeModule(fullFileName, context.ModuleContext, scriptCode, ModuleOptions.None);
-                
+                mod = context.LanguageContext.CompileModule(modpath, fullname,
+                    new SourceUnit(context.LanguageContext, new SourceStringContentProvider(code), modpath, SourceCodeKind.File),
+                    ModuleOptions.None, out scriptCode);
+
                 dict = mod.Get__dict__();
 
                 // Set values before execute script
@@ -256,8 +252,7 @@ namespace Simplic.Dlr
                     dict["__package__"] = packageName.ToString();
                 }
                 
-                scriptCode.Run(context.ModuleContext.GlobalScope);
-
+                scriptCode.Run(mod.Scope);
                 return mod;
             }
             #endregion
