@@ -27,7 +27,7 @@ You can find the newest and stable version at nuget.
 
 [![NuGet Status](http://img.shields.io/nuget/v/Simplic.Dlr.svg?style=flat)](https://www.nuget.org/packages/Simplic.Dlr/)
 
-_Please use a self compiled version._
+_Please use a self compiled version. Or download from releases_
 
 ## Samples
 
