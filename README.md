@@ -19,6 +19,8 @@ The library provides the following functions:
 Just clone the current repository and open the *Simplic.Dlr* solution in the *src* directory. After compiling 
 just copy all needed assemblies (Simplic.Dlr, IronPython.dll, Microsoft.Scripting, ...).
 
+_Be sure you use the IronPython dlls from the `dependencies` directory._
+
 ### Nuget
 
 You can find the newest and stable version at nuget.
@@ -98,6 +100,16 @@ instance.CallMethod("doPrintVar");
 dynInstance.var1 = "Variable content 2.";
 dynInstance.doPrintVar();
 ```
+
+### Create a custom import source
+
+To create a custom import source, you jsut have to do few things.
+
+1. Create a class which inherits from `IDlrImportResolver`
+2. Implement `GetModuleInformation` which should return a `ResolvedType.None` if nothing exists, `ResolvedType.Module` if it's a module. If it is a package, return `ResolvedType.Package`
+3. Register your created resolver using the Dlr-Host: `<<your host>>.AddImportResolver(new <<Your import resolver>>());`
+
+For more information take a look at: `Sample.ImportResolver`. This shows how to load embedded scripts from a project using `IDlrImportResolver`.
 
 ### Create a c# wrapper for IronPython classes
 
