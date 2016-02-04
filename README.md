@@ -7,9 +7,10 @@ The library provides the following functions:
 * Integrated Dlr-Class to interact between C# and Python class: `DlrClass`
   * Easily write wrappers of IronPython classes to use them as a .Net class
 * Access dlr variables easily over the integrated `DlrScriptScope`
-* Easily write your own script import resolver, to load scripts and even package from the database or any other source: `IDlrImportResolver` [Not implemented yet, but very soon]
+* Easily write your own script import resolver, to load scripts and even package from the database or any other source: `IDlrImportResolver`
 * Precompile code for easy and faster usage
 * Cache scripts/statements for faster execution
+* Simple using/importing all dlls which are loaded into the current `AppDomain`
 
 ## Installation
 

@@ -91,8 +91,6 @@ namespace Simplic.Dlr
                     throw PythonOps.TypeError("must be string, not None");
                 }
 
-                Console.WriteLine("    Path: " + pathObj.ToString());
-
                 if (!(pathObj is string))
                 {
                     throw PythonOps.TypeError("must be string, not {0}", pathObj.GetType());
@@ -190,7 +188,6 @@ namespace Simplic.Dlr
                         code = tempCode;
                         modpath = fullname;
                         fullFileName = fullname.Replace(".", "/") + order.Key;
-                        Console.WriteLine("     IMPORT: " + modpath);
 
                         if ((order.Value & GenericModuleCodeType.Package) == GenericModuleCodeType.Package)
                         {
