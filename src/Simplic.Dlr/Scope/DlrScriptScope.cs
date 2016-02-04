@@ -259,7 +259,7 @@ namespace Simplic.Dlr
         /// Remove path from cache, so that a script from ExecuteScript will be executed the next time without using alwaysExecute = true
         /// </summary>
         /// <param name="path">Path to the script</param>
-        public void RemoveChachedScriptPath(string path)
+        public void RemoveCachedScriptPath(string path)
         {
             if (executedScripts.Any(item => item.Equals(path, StringComparison.OrdinalIgnoreCase)))
             {

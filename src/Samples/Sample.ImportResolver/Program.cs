@@ -13,6 +13,7 @@ namespace Sample.ImportResolver
     {
         static void Main(string[] args)
         {
+            System.Diagnostics.Debugger.Launch();
             // Create simple host environment
             var host = new DlrHost<IronPythonLanguage>(new IronPythonLanguage());
 
@@ -27,7 +28,6 @@ namespace Sample.ImportResolver
 
             // Import some classes and use them
             host.DefaultScope.Execute(""
-                //+ "import sys" + "\r\n"
                 + "import Math.MathImpl" + "\r\n"
                 //+ "from System import Console" + "\r\n"
                 + "" + "\r\n"

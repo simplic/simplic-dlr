@@ -73,7 +73,7 @@ namespace Simplic.Dlr
 
             public genericimporter()
             {
-                
+
             }
 
             public genericimporter(CodeContext/*!*/ context, object pathObj, [Microsoft.Scripting.ParamDictionary] IDictionary<object, object> kwArgs)
@@ -124,8 +124,6 @@ namespace Simplic.Dlr
                 _rel_path = pathObj.ToString();
             }
 
-            private static string lastPath = "";
-
             #region [__repr__]
             /// <summary>
             /// OBject representation
@@ -169,11 +167,7 @@ namespace Simplic.Dlr
                 return null;
             }
             #endregion
-            private string GetSubName(string fullname)
-            {
-                string[] items = fullname.Split(new char[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
-                return items[items.Length - 1];
-            }
+
             #region [load_module]
             public object load_module(CodeContext/*!*/ context, string fullname)
             {
@@ -181,6 +175,7 @@ namespace Simplic.Dlr
                 GenericModuleCodeType moduleType;
                 bool ispackage = false;
                 string modpath = null;
+                string fullFileName = null;
                 PythonModule mod;
                 PythonDictionary dict = null;
 
@@ -193,8 +188,8 @@ namespace Simplic.Dlr
                     {
                         moduleType = order.Value;
                         code = tempCode;
-                        modpath = fullname + order.Key;
-
+                        modpath = fullname;
+                        fullFileName = fullname.Replace(".", "/") + order.Key;
                         Console.WriteLine("     IMPORT: " + modpath);
 
                         if ((order.Value & GenericModuleCodeType.Package) == GenericModuleCodeType.Package)
@@ -212,7 +207,7 @@ namespace Simplic.Dlr
                     return null;
                 }
 
-                var scriptCode = context.ModuleContext.Context.CompileSourceCode
+                var scriptCode = context.LanguageContext.CompileSourceCode
                     (
                         new SourceUnit(context.LanguageContext, new SourceStringContentProvider(code), modpath, SourceCodeKind.AutoDetect),
                         new IronPython.Compiler.PythonCompilerOptions() { },
@@ -220,24 +215,29 @@ namespace Simplic.Dlr
                     );
 
                 // initialize module
-                mod = context.ModuleContext.Context.InitializeModule(modpath, context.ModuleContext, scriptCode, ModuleOptions.None);
-
+                mod = context.LanguageContext.InitializeModule(fullFileName, context.ModuleContext, scriptCode, ModuleOptions.None);
+                
                 dict = mod.Get__dict__();
 
-                // we do these here because we don't want CompileModule to initialize the module until we've set 
-                // up some additional stuff
-                dict.Add("__name__", fullname);
+                // Set values before execute script
+                dict.Add("__name__", fullname.Split('.').Last());
                 dict.Add("__loader__", this);
                 dict.Add("__package__", null);
 
                 if (ispackage)
                 {
                     // Add path
-                    string subname = GetSubName(fullname);
                     string fullpath = string.Format(fullname.Replace(".", "/"));
-
                     List pkgpath = PythonOps.MakeList(fullpath);
-                    dict.Add("__path__", pkgpath);
+                   
+                    if (dict.ContainsKey("__path__"))
+                    {
+                        dict["__path__"] = pkgpath;
+                    }
+                    else
+                    {
+                        dict.Add("__path__", pkgpath);
+                    }
                 }
                 else
                 {
@@ -256,8 +256,7 @@ namespace Simplic.Dlr
                     dict["__package__"] = packageName.ToString();
                 }
                 
-                var scope = context.ModuleContext.GlobalScope;
-                scriptCode.Run(scope);
+                scriptCode.Run(context.ModuleContext.GlobalScope);
 
                 return mod;
             }
