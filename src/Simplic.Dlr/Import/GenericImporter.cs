@@ -16,6 +16,13 @@ namespace Simplic.Dlr
 {
     public static class GenericImportModule
     {
+        #region Const
+        /// <summary>
+        /// Name which will be used in resolver
+        /// </summary>
+        public const string RESOLVER_PATH_NAME = "<simplic-dlr-resolver>";
+        #endregion
+
         /// <summary>
         /// IronPython language context.
         /// </summary>
@@ -79,7 +86,7 @@ namespace Simplic.Dlr
             public genericimporter(CodeContext/*!*/ context, object pathObj, [Microsoft.Scripting.ParamDictionary] IDictionary<object, object> kwArgs)
             {
                 PlatformAdaptationLayer pal = context.LanguageContext.DomainManager.Platform;
-
+                
                 // Can only be used, if a host is set
                 if (Host == null || Host.Resolver.Count == 0)
                 {
@@ -108,6 +115,12 @@ namespace Simplic.Dlr
                     throw new Exception("Could not resolve empty, whitespace or null path");
                 }
 
+                // Only use for resolvable paths
+                if (!path.StartsWith(GenericImportModule.RESOLVER_PATH_NAME))
+                {
+                    throw new ImportException("Not a generic source path.");
+                }
+
                 string buf = path.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
                 string input = buf;
 
@@ -118,8 +131,6 @@ namespace Simplic.Dlr
                     _prefix = _prefix.Substring(1);
                     _prefix += Path.DirectorySeparatorChar;
                 }
-
-                _rel_path = pathObj.ToString();
             }
 
             #region [__repr__]
@@ -130,6 +141,29 @@ namespace Simplic.Dlr
             public string __repr__()
             {
                 return "<genericimporter object \"" + this.GetType().ToString() + "\">";
+            }
+            #endregion
+
+            #region [MakePath]
+            /// <summary>
+            /// Create complete relative path
+            /// </summary>
+            /// <param name="fullname"></param>
+            /// <returns></returns>
+            public string MakeValidPath(string fullname)
+            {
+                if (string.IsNullOrWhiteSpace(_rel_path))
+                {
+                    return fullname;
+                }
+                else if (fullname.StartsWith(_rel_path + "."))
+                {
+                    return fullname;
+                }
+                else
+                {
+                    return _rel_path + "." + fullname;
+                }
             }
             #endregion
 
@@ -145,11 +179,7 @@ namespace Simplic.Dlr
             {
                 try
                 {
-                    // Set module
-                    if (fullname.Contains("<module>"))
-                    {
-                        throw new Exception("Why, why does fullname contains <module>?");
-                    }
+                    fullname = MakeValidPath(fullname);
 
                     // Find resolver
                     foreach (var resolver in Host.Resolver)
@@ -176,6 +206,8 @@ namespace Simplic.Dlr
             #region [load_module]
             public object load_module(CodeContext/*!*/ context, string fullname)
             {
+                fullname = MakeValidPath(fullname);
+
                 string code = null;
                 GenericModuleCodeType moduleType;
                 bool ispackage = false;
@@ -213,7 +245,7 @@ namespace Simplic.Dlr
 
                 ScriptCode scriptCode = null;
 
-                mod = context.LanguageContext.CompileModule(modpath, fullname,
+                mod = context.LanguageContext.CompileModule(fullFileName, fullname,
                     new SourceUnit(context.LanguageContext, new SourceStringContentProvider(code), modpath, SourceCodeKind.File),
                     ModuleOptions.None, out scriptCode);
 
@@ -227,7 +259,8 @@ namespace Simplic.Dlr
                 if (ispackage)
                 {
                     // Add path
-                    string fullpath = string.Format(fullname.Replace(".", "/"));
+                    string fullpath = string.Format(fullname.Replace("/", "."));
+                    _rel_path = fullpath;
                     List pkgpath = PythonOps.MakeList(fullpath);
 
                     if (dict.ContainsKey("__path__"))

@@ -126,6 +126,9 @@ namespace Simplic.Dlr
         /// <param name="resolver"></param>
         public void AddImportResolver(IDlrImportResolver resolver)
         {
+            RemoveSearchPath(GenericImportModule.RESOLVER_PATH_NAME);
+            AddSearchPath(GenericImportModule.RESOLVER_PATH_NAME);
+
             this.resolver.Add(resolver);
         }
         #endregion

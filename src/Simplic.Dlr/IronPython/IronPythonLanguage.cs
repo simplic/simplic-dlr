@@ -113,7 +113,7 @@ namespace Simplic.Dlr
             path_hooks.Add(genericimporter);
 
             sysScope.SetVariable("path_hooks", path_hooks);
-
+            
             return scriptEngine;
         }
 
@@ -131,7 +131,7 @@ namespace Simplic.Dlr
         /// <returns>Dynamic script scope containing the module</returns>
         private object ResolveImport(CodeContext context, string moduleName, PythonDictionary globals, PythonDictionary locals, PythonTuple fromlist)
         {
-            var builtin = IronPython.Modules.Builtin.__import__(context, moduleName, globals, locals, fromlist, 0);
+            var builtin = IronPython.Modules.Builtin.__import__(context, moduleName, globals, locals, fromlist, -1);
 
             // Try to load all not loaded assembly and call import again
             if (UseAssemblyAutodetection && Microsoft.Scripting.Runtime.LightExceptions.IsLightException(builtin))
@@ -159,7 +159,7 @@ namespace Simplic.Dlr
                     }
                 }
 
-                builtin = IronPython.Modules.Builtin.__import__(context, moduleName, globals, locals, fromlist, 0);
+                builtin = IronPython.Modules.Builtin.__import__(context, moduleName, globals, locals, fromlist, -1);
             }
 
             return builtin;
