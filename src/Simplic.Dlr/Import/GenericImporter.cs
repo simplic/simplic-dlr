@@ -259,7 +259,7 @@ namespace Simplic.Dlr
                 if (ispackage)
                 {
                     // Add path
-                    string fullpath = string.Format(fullname.Replace("/", "."));
+                    string fullpath = RESOLVER_PATH_NAME + "." + string.Format(fullname.Replace("/", "."));
                     _rel_path = fullpath;
                     List pkgpath = PythonOps.MakeList(fullpath);
 
