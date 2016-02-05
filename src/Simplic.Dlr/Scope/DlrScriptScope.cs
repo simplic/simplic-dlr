@@ -243,7 +243,7 @@ namespace Simplic.Dlr
                 {
                     if (executedScripts.Contains(path))
                     {
-                        executedScripts.Add(path);
+                        executedScripts.Remove(path);
                     }
 
                     throw;
