@@ -55,6 +55,16 @@ namespace Simplic.Dlr
 
         #region Public Methods
         /// <summary>
+        /// Create new default scope. One default scope will be created automatically when creating a Host-Instance.
+        /// </summary>
+        /// <returns>Scope instance</returns>
+        public DlrScriptScope CreateNewDefaultScope()
+        {
+            defaultScope = new DlrScriptScope(this);
+            return defaultScope;
+        }
+
+        /// <summary>
         /// Load an assembly into the runtime
         /// </summary>
         /// <param name="asm">Instance of an assembly</param>

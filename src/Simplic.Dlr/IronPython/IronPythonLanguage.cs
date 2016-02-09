@@ -49,6 +49,7 @@ namespace Simplic.Dlr
         private HashSet<string> buildInModules;
         private HashSet<string> clrModules;
         private HashSet<string> loadedAssemblies;
+        private HashSet<string> loadedNamespace;
         #endregion
 
         #region Constructor
@@ -61,6 +62,7 @@ namespace Simplic.Dlr
             buildInModules = new HashSet<string>();
             clrModules = new HashSet<string>();
             loadedAssemblies = new HashSet<string>();
+            loadedNamespace = new HashSet<string>();
             UseAssemblyAutodetection = true;
 
             EnableZipImporter = false;
@@ -117,6 +119,45 @@ namespace Simplic.Dlr
             return scriptEngine;
         }
 
+        /// <summary>
+        /// Load all assembly which are available in the current App-Domain
+        /// </summary>
+        private void LoadAllAvailableAssemblies()
+        {
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                if (!loadedAssemblies.Contains(assembly.FullName))
+                {
+                    scriptEngine.Runtime.LoadAssembly(assembly);
+                    loadedAssemblies.Add(assembly.FullName);
+
+                    foreach (var ns in assembly.GetTypes().Select(t => t.Namespace).Distinct())
+                    {
+                        loadedNamespace.Add(ns);
+                    }
+
+                    foreach (var referenced in assembly.GetReferencedAssemblies())
+                    {
+                        if (!loadedAssemblies.Contains(referenced.FullName))
+                        {
+                            try
+                            {
+                                loadedAssemblies.Add(referenced.FullName);
+                                var refAsm = System.Reflection.Assembly.Load(referenced);
+                                scriptEngine.Runtime.LoadAssembly(refAsm);
+
+                                foreach (var ns in refAsm.GetTypes().Select(t => t.Namespace).Distinct())
+                                {
+                                    loadedNamespace.Add(ns);
+                                }
+                            }
+                            catch { /*Swallow*/ }
+                        }
+                    }
+                }
+            }
+        }
+
         #region [ResolveImport]
         /// <summary>
         /// Resolve an iron python import. If no module in script or script ui could be found, the method will try to resolve the module
@@ -131,33 +172,24 @@ namespace Simplic.Dlr
         /// <returns>Dynamic script scope containing the module</returns>
         private object ResolveImport(CodeContext context, string moduleName, PythonDictionary globals, PythonDictionary locals, PythonTuple fromlist)
         {
-            var builtin = IronPython.Modules.Builtin.__import__(context, moduleName, globals, locals, fromlist, -1);
+            object builtin = builtin = IronPython.Modules.Builtin.__import__(context, moduleName, globals, locals, fromlist, -1);
+            bool forceLoad = false;
 
-            // Try to load all not loaded assembly and call import again
-            if (UseAssemblyAutodetection && Microsoft.Scripting.Runtime.LightExceptions.IsLightException(builtin))
+            // If assembly auto-detect is available check whether the namespace was already loaded.
+            // If not, try to load it!
+            if (builtin is Microsoft.Scripting.Actions.NamespaceTracker && UseAssemblyAutodetection)
             {
-                foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
-                {
-                    if (!loadedAssemblies.Contains(assembly.FullName))
-                    {
-                        scriptEngine.Runtime.LoadAssembly(assembly);
-                        loadedAssemblies.Add(assembly.FullName);
+                var tracker = (builtin as Microsoft.Scripting.Actions.NamespaceTracker);
+                var nsName = tracker.Name;
 
-                        foreach (var referenced in assembly.GetReferencedAssemblies())
-                        {
-                            if (!loadedAssemblies.Contains(referenced.FullName))
-                            {
-                                try
-                                {
-                                    loadedAssemblies.Add(referenced.FullName);
-                                    var refAsm = System.Reflection.Assembly.Load(referenced);
-                                    scriptEngine.Runtime.LoadAssembly(refAsm);
-                                }
-                                catch { /*Swallow*/ }
-                            }
-                        }
-                    }
-                }
+                forceLoad = !loadedNamespace.Contains(nsName);
+            }
+
+            
+            // Try to load all not loaded assembly and call import again
+            if (UseAssemblyAutodetection && (forceLoad == true || Microsoft.Scripting.Runtime.LightExceptions.IsLightException(builtin)))
+            {
+                LoadAllAvailableAssemblies();
 
                 builtin = IronPython.Modules.Builtin.__import__(context, moduleName, globals, locals, fromlist, -1);
             }
