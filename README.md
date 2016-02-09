@@ -10,7 +10,7 @@ The library provides the following functions:
 * Easily write your own script import resolver, to load scripts and even package from the database or any other source: `IDlrImportResolver`
 * Precompile code for easy and faster usage
 * Cache scripts/statements for faster execution
-* Simple using/importing all dlls which are loaded into the current `AppDomain`
+* Simple using/importing all dlls which are loaded into the current `AppDomain`. So all assemblies will automatically registered in the current ScriptEngine.
 
 ## Installation
 
