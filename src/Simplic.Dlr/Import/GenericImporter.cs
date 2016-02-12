@@ -184,7 +184,8 @@ namespace Simplic.Dlr
                     // Find resolver
                     foreach (var resolver in Host.Resolver)
                     {
-                        var res = resolver.GetModuleInformation(fullname);
+                        // Always pass slash instead of dot!
+                        var res = resolver.GetModuleInformation(fullname.Replace(".", "/"));
 
                         // If this script could be resolved by some resolver
                         if (res != ResolvedType.None)
@@ -219,7 +220,7 @@ namespace Simplic.Dlr
                 // Go through available import types by search-order
                 foreach (var order in _search_order)
                 {
-                    string tempCode = this.resolver.GetScriptSource(fullname + order.Key);
+                    string tempCode = this.resolver.GetScriptSource(fullname.Replace(".", "/") + order.Key);
 
                     if (tempCode != null)
                     {

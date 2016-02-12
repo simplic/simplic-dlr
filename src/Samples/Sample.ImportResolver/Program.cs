@@ -28,8 +28,8 @@ namespace Sample.ImportResolver
             // Import some classes and use them
             host.DefaultScope.Execute(""
                 // + "from System import Console" + "\r\n"
-                + "import os\r\n"
-                + "import Math" + "\r\n"
+                //+ "import os\r\n"
+                + "import Math.MathImpl" + "\r\n"
                 //+ "import Simplic.Dlr" + "\r\n"
                 + "" + "\r\n"
                 //+ "Console.WriteLine(str(Math.add(1, 2)))" + "\r\n"

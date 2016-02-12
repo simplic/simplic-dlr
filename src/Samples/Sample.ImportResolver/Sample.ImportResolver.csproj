@@ -75,7 +75,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Math\MathImpl\Math2.py" />
+    <EmbeddedResource Include="Math\MathImpl\MathImpl.py" />
     <EmbeddedResource Include="Math\MathImpl\__init__.py" />
   </ItemGroup>
   <ItemGroup>
