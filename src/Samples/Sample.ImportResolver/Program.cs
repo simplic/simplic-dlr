@@ -22,8 +22,8 @@ namespace Sample.ImportResolver
             host.AddImportResolver(new EmbeddedModuleResolver());
 
             // Execute script by path
-            //var val = host.DefaultScope.ExecuteScript("FileSample/FileSample.py");
-            //Console.WriteLine("Script value: " + val.ToString());            
+            var val = host.DefaultScope.ExecuteScript("FileSample/FileSample.py");
+            Console.WriteLine("Script value: " + val.ToString());            
 
             // Import some classes and use them
             host.DefaultScope.Execute(""

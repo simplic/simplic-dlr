@@ -17,3 +17,6 @@ def div(x, y):
     return x / y;
 
 print ('Import MathImpl.py!')
+
+print ('Let`s try: from Math.Demo01 import Demo01')
+from Math.Demo01 import Demo01

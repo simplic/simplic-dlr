@@ -45,8 +45,11 @@ namespace Simplic.Dlr
 
             #region Private Member
             private IDlrImportResolver resolver;
-            private string _rel_path;
+            private string _rel_path_;
             private string _prefix;
+
+            private IList<string> paths;
+            private string resolved_subpath;
             #endregion
 
             #region [Static]
@@ -86,7 +89,8 @@ namespace Simplic.Dlr
             public genericimporter(CodeContext/*!*/ context, object pathObj, [Microsoft.Scripting.ParamDictionary] IDictionary<object, object> kwArgs)
             {
                 PlatformAdaptationLayer pal = context.LanguageContext.DomainManager.Platform;
-                
+                paths = new List<string>();
+
                 // Can only be used, if a host is set
                 if (Host == null || Host.Resolver.Count == 0)
                 {
@@ -125,6 +129,7 @@ namespace Simplic.Dlr
                 string input = buf;
 
                 _prefix = input.Replace(path, string.Empty);
+                paths.Add("");
                 // add trailing SEP
                 if (!string.IsNullOrEmpty(_prefix) && !_prefix.EndsWith(Path.DirectorySeparatorChar.ToString()))
                 {
@@ -150,19 +155,19 @@ namespace Simplic.Dlr
             /// </summary>
             /// <param name="fullname"></param>
             /// <returns></returns>
-            public string MakeValidPath(string fullname)
+            public string MakeValidPath(string fullname, string rel)
             {
-                if (string.IsNullOrWhiteSpace(_rel_path))
+                if (string.IsNullOrWhiteSpace(rel))
                 {
                     return fullname;
                 }
-                else if (fullname.StartsWith(_rel_path + "."))
+                else if (fullname.StartsWith(rel + "."))
                 {
                     return fullname;
                 }
                 else
                 {
-                    return _rel_path + "." + fullname;
+                    return rel + "." + fullname;
                 }
             }
             #endregion
@@ -179,19 +184,24 @@ namespace Simplic.Dlr
             {
                 try
                 {
-                    fullname = MakeValidPath(fullname);
+                    // fullname = MakeValidPath(fullname);
 
-                    // Find resolver
-                    foreach (var resolver in Host.Resolver)
+                    foreach (var path in paths)
                     {
-                        // Always pass slash instead of dot!
-                        var res = resolver.GetModuleInformation(fullname.Replace(".", "/"));
-
-                        // If this script could be resolved by some resolver
-                        if (res != ResolvedType.None)
+                        // Find resolver
+                        foreach (var resolver in Host.Resolver)
                         {
-                            this.resolver = resolver;
-                            return this;
+                            // Always pass slash instead of dot!
+                            string _testPath = MakeValidPath(fullname, path);
+                            var res = resolver.GetModuleInformation(_testPath.Replace(".", "/"));
+
+                            // If this script could be resolved by some resolver
+                            if (res != ResolvedType.None)
+                            {
+                                this.resolver = resolver;
+                                this.resolved_subpath = path;
+                                return this;
+                            }
                         }
                     }
 
@@ -207,7 +217,7 @@ namespace Simplic.Dlr
             #region [load_module]
             public object load_module(CodeContext/*!*/ context, string fullname)
             {
-                fullname = MakeValidPath(fullname);
+                fullname = MakeValidPath(fullname, resolved_subpath);
 
                 string code = null;
                 GenericModuleCodeType moduleType;
@@ -261,7 +271,10 @@ namespace Simplic.Dlr
                 {
                     // Add path
                     string fullpath = RESOLVER_PATH_NAME + "." + string.Format(fullname.Replace("/", "."));
-                    _rel_path = fullpath;
+                    
+                    //_rel_path = fullpath;
+                    paths.Add(fullpath);
+
                     List pkgpath = PythonOps.MakeList(fullpath);
 
                     if (dict.ContainsKey("__path__"))
