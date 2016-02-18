@@ -115,7 +115,7 @@ namespace Simplic.Dlr
             path_hooks.Add(genericimporter);
 
             sysScope.SetVariable("path_hooks", path_hooks);
-            
+
             return scriptEngine;
         }
 
@@ -126,35 +126,43 @@ namespace Simplic.Dlr
         {
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
-                if (!loadedAssemblies.Contains(assembly.FullName))
+                try
                 {
-                    scriptEngine.Runtime.LoadAssembly(assembly);
-                    loadedAssemblies.Add(assembly.FullName);
-
-                    foreach (var ns in assembly.GetTypes().Select(t => t.Namespace).Distinct())
+                    if (!loadedAssemblies.Contains(assembly.FullName))
                     {
-                        loadedNamespace.Add(ns);
-                    }
+                        scriptEngine.Runtime.LoadAssembly(assembly);
+                        loadedAssemblies.Add(assembly.FullName);
 
-                    foreach (var referenced in assembly.GetReferencedAssemblies())
-                    {
-                        if (!loadedAssemblies.Contains(referenced.FullName))
+                        foreach (var ns in assembly.GetTypes().Select(t => t.Namespace).Distinct())
                         {
-                            try
-                            {
-                                loadedAssemblies.Add(referenced.FullName);
-                                var refAsm = System.Reflection.Assembly.Load(referenced);
-                                scriptEngine.Runtime.LoadAssembly(refAsm);
+                            loadedNamespace.Add(ns);
+                        }
 
-                                foreach (var ns in refAsm.GetTypes().Select(t => t.Namespace).Distinct())
+                        foreach (var referenced in assembly.GetReferencedAssemblies())
+                        {
+                            if (!loadedAssemblies.Contains(referenced.FullName))
+                            {
+                                try
                                 {
-                                    loadedNamespace.Add(ns);
+                                    loadedAssemblies.Add(referenced.FullName);
+                                    try
+                                    {
+                                        var refAsm = System.Reflection.Assembly.Load(referenced);
+                                        scriptEngine.Runtime.LoadAssembly(refAsm);
+
+                                        foreach (var ns in refAsm.GetTypes().Select(t => t.Namespace).Distinct())
+                                        {
+                                            loadedNamespace.Add(ns);
+                                        }
+                                    }
+                                    catch { /*Swallow*/  }
                                 }
+                                catch { /*Swallow*/ }
                             }
-                            catch { /*Swallow*/ }
                         }
                     }
                 }
+                catch { /*Swallow*/ }
             }
         }
 
@@ -185,7 +193,7 @@ namespace Simplic.Dlr
                 forceLoad = !loadedNamespace.Contains(nsName);
             }
 
-            
+
             // Try to load all not loaded assembly and call import again
             if (UseAssemblyAutodetection && (forceLoad == true || Microsoft.Scripting.Runtime.LightExceptions.IsLightException(builtin)))
             {
