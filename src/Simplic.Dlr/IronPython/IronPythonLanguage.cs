@@ -29,6 +29,11 @@ namespace Simplic.Dlr
         /// File which defines a package
         /// </summary>
         public const string PACKAGE_DEFINITION_FILE = "__init__" + PYTHON_FILE_EXTENSION;
+
+        /// <summary>
+        /// Load references
+        /// </summary>
+        public const bool LOAD_REFERENCES_AUTOMATICALLY = false;
         #endregion
 
         #region Events & Delegates
@@ -138,26 +143,29 @@ namespace Simplic.Dlr
                             loadedNamespace.Add(ns);
                         }
 
-                        foreach (var referenced in assembly.GetReferencedAssemblies())
+                        if(LOAD_REFERENCES_AUTOMATICALLY)
                         {
-                            if (!loadedAssemblies.Contains(referenced.FullName))
+                            foreach (var referenced in assembly.GetReferencedAssemblies())
                             {
-                                try
+                                if (!loadedAssemblies.Contains(referenced.FullName))
                                 {
-                                    loadedAssemblies.Add(referenced.FullName);
                                     try
                                     {
-                                        var refAsm = System.Reflection.Assembly.Load(referenced);
-                                        scriptEngine.Runtime.LoadAssembly(refAsm);
-
-                                        foreach (var ns in refAsm.GetTypes().Select(t => t.Namespace).Distinct())
+                                        loadedAssemblies.Add(referenced.FullName);
+                                        try
                                         {
-                                            loadedNamespace.Add(ns);
+                                            var refAsm = System.Reflection.Assembly.Load(referenced);
+                                            scriptEngine.Runtime.LoadAssembly(refAsm);
+
+                                            foreach (var ns in refAsm.GetTypes().Select(t => t.Namespace).Distinct())
+                                            {
+                                                loadedNamespace.Add(ns);
+                                            }
                                         }
+                                        catch { /*Swallow*/  }
                                     }
-                                    catch { /*Swallow*/  }
+                                    catch { /*Swallow*/ }
                                 }
-                                catch { /*Swallow*/ }
                             }
                         }
                     }
