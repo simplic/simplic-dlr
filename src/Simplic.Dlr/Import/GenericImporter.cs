@@ -94,7 +94,7 @@ namespace Simplic.Dlr
                 // Can only be used, if a host is set
                 if (Host == null || Host.Resolver.Count == 0)
                 {
-                    throw new Exception("No generic importer is registered");
+                    throw new ImportException("No generic importer is registered");
                 }
 
                 if (pathObj == null)
@@ -116,7 +116,7 @@ namespace Simplic.Dlr
 
                 if (string.IsNullOrWhiteSpace(path))
                 {
-                    throw new Exception("Could not resolve empty, whitespace or null path");
+                    throw new ImportException("Could not resolve empty, whitespace or null path");
                 }
 
                 // Only use for resolvable paths

@@ -33,7 +33,7 @@ namespace Simplic.Dlr
         /// <summary>
         /// Load references
         /// </summary>
-        public const bool LOAD_REFERENCES_AUTOMATICALLY = false;
+        public const bool LOAD_REFERENCES_AUTOMATICALLY = true;
         #endregion
 
         #region Events & Delegates

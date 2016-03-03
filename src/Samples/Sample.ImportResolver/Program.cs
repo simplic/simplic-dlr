@@ -19,17 +19,22 @@ namespace Sample.ImportResolver
             host.AddSearchPath(@"C:\Program Files (x86)\IronPython 2.7\Lib\");
 
             // Add some resolver for embedded scripts/modules
-            host.AddImportResolver(new EmbeddedModuleResolver());
+            //host.AddImportResolver(new EmbeddedModuleResolver());
 
             // Execute script by path
-            var val = host.DefaultScope.ExecuteScript("FileSample/FileSample.py");
-            Console.WriteLine("Script value: " + val.ToString());            
+            //var val = host.DefaultScope.ExecuteScript("FileSample/FileSample.py");
+            //Console.WriteLine("Script value: " + val.ToString());
 
             // Import some classes and use them
             host.DefaultScope.Execute(""
-                // + "from System import Console" + "\r\n"
-                //+ "import os\r\n"
-                + "import Math.MathImpl" + "\r\n"
+            // + "from System import Console" + "\r\n"
+            //+ "import os\r\n"
+            // + "import Math.MathImpl" + "\r\n"
+            + "from importlib import import_module" + "\r\n"
+            + "import_module('collections')" + "\r\n"
+                //+ "globals()['defaultdict'] = getattr(import_module('collections'), 'defaultdict')" + "\r\n"
+                //+ "print defaultdict" + "\r\n"
+                //+ "# Ausgabe: <type '_collections.defaultdict'>" + "\r\n"
                 //+ "import Simplic.Dlr" + "\r\n"
                 + "" + "\r\n"
                 //+ "Console.WriteLine(str(Math.add(1, 2)))" + "\r\n"
@@ -79,7 +84,7 @@ namespace Sample.ImportResolver
                 {
                     return ResolvedType.Package;
                 }
-                else if(GetEmbedded("Sample.ImportResolver." + dottedPath + ".py") != null)
+                else if (GetEmbedded("Sample.ImportResolver." + dottedPath + ".py") != null)
                 {
                     return ResolvedType.Module;
                 }

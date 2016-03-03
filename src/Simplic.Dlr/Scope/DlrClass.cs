@@ -1,4 +1,5 @@
-﻿using System;
+﻿using IronPython.Runtime.Types;
+using System;
 using System.Dynamic;
 
 namespace Simplic.Dlr
@@ -31,6 +32,20 @@ namespace Simplic.Dlr
             // create class instance
             type = scriptScope.ScriptScope.GetVariable(className);
             instance = scriptScope.Host.ScriptEngine.Operations.CreateInstance(type, parameter);
+        }
+
+        /// <summary>
+        /// Create new dlr class
+        /// </summary>
+        /// <param name="scriptScope">Scope which contains the class definition and in which the instance will be created</param>
+        /// <param name="pythonType">Python-Type instance</param>
+        /// <param name="parameter">Arguments for the constructor</param>
+        public DlrClass(DlrScriptScope scriptScope, PythonType pythonType, params object[] parameter)
+        {
+            this.scriptScope = scriptScope;
+
+            // create class instance
+            instance = scriptScope.Host.ScriptEngine.Operations.CreateInstance(pythonType, parameter);
         }
         #endregion
 
@@ -116,6 +131,11 @@ namespace Simplic.Dlr
         }
 
         public dynamic CallFunction(string method, params dynamic[] arguments)
+        {
+            return scriptScope.Host.ScriptEngine.Operations.InvokeMember(instance, method, arguments);
+        }
+
+        public dynamic CallFunctionIgnoreCase(string method, params dynamic[] arguments)
         {
             return scriptScope.Host.ScriptEngine.Operations.InvokeMember(instance, method, arguments);
         }
