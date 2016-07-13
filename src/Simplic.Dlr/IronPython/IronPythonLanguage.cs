@@ -76,6 +76,8 @@ namespace Simplic.Dlr
             buildInModules.Add("sys");
             buildInModules.Add("clr");
             buildInModules.Add("wpf");
+
+            LanguageOptionSet = new Dictionary<string, object>();
         }
         #endregion
 
@@ -92,12 +94,13 @@ namespace Simplic.Dlr
         public ScriptEngine CreateEngine(ScriptRuntime runtime)
         {
             scriptEngine = runtime.GetEngineByTypeName(typeof(PythonContext).AssemblyQualifiedName);
-
+            
             // Override import functionality
             ScriptScope scope = IronPython.Hosting.Python.GetBuiltinModule(scriptEngine);
             scope.SetVariable("__import__", new ImportDelegate(ResolveImport));
 
             var sysScope = scriptEngine.GetSysModule();
+
             List path_hooks = sysScope.GetVariable("path_hooks");
 
             // Disable zipimporter if needed
@@ -112,7 +115,6 @@ namespace Simplic.Dlr
                     {
                         path_hooks.RemoveAt(i);
                     }
-
                 }
             }
 
@@ -221,9 +223,17 @@ namespace Simplic.Dlr
         public ScriptRuntimeSetup CreateRuntime()
         {
             var runtimeSetup = Python.CreateRuntimeSetup(null);
-            runtimeSetup.DebugMode = false;
+            runtimeSetup.DebugMode = true;
             runtimeSetup.Options["Frames"] = true;
             runtimeSetup.Options["FullFrames"] = true;
+
+            if (LanguageOptionSet != null && runtimeSetup.LanguageSetups.Count > 0)
+            {
+                foreach (var opt in LanguageOptionSet)
+                {
+                    runtimeSetup.LanguageSetups[0].Options[opt.Key] = opt.Value;
+                }
+            }
 
             return runtimeSetup;
         }
@@ -258,6 +268,44 @@ namespace Simplic.Dlr
         {
             get;
             set;
+        }
+
+        /// <summary>
+        /// Gets or sets a set of language options. For example Arguments for passing argv
+        /// </summary>
+        public IDictionary<string, object> LanguageOptionSet
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Gets or sets a list of arguments
+        /// </summary>
+        public IList<string> Argv
+        {
+            get
+            {
+                if (LanguageOptionSet == null || !LanguageOptionSet.ContainsKey("Arguments"))
+                {
+                    return null;
+                }
+                else
+                {
+                    return (IList<string>)LanguageOptionSet["Arguments"];
+                }
+            }
+            set
+            {
+                if (value == null)
+                {
+                    LanguageOptionSet["Arguments"] = null;
+                }
+                else
+                {
+                    LanguageOptionSet["Arguments"] = value.ToArray();
+                }
+            }
         }
         #endregion
     }

@@ -30,7 +30,7 @@ namespace Simplic.Dlr
         /// </summary>
         public DlrHost(T language)
         {
-            this.language = language;
+            this.language = language; 
             loadedAssemblies = new HashSet<string>();
             resolver = new List<IDlrImportResolver>();
 

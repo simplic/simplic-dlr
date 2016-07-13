@@ -1,4 +1,8 @@
-﻿using Microsoft.Scripting.Hosting;
+﻿using IronPython.Runtime;
+using IronPython.Runtime.Exceptions;
+using Microsoft.Scripting;
+using Microsoft.Scripting.Hosting;
+using Microsoft.Scripting.Runtime;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -108,7 +112,7 @@ namespace Simplic.Dlr
             {
                 throw new ArgumentException("Variable name can not be null or white space", "variable");
             }
-            scriptScope.SetVariable(variable, value);
+            scriptScope.SetVariable(variable, value ?? "");
         }
 
         /// <summary>
@@ -249,6 +253,31 @@ namespace Simplic.Dlr
                     throw;
                 }
             }
+            
+            //PythonContext context = (PythonContext)Microsoft.Scripting.Hosting.Providers.HostingHelpers.GetLanguageContext(host.ScriptEngine);
+            //
+            //// classic file
+            //ScriptCode compiledCode;
+            //ModuleOptions modOpt = ModuleOptions.Optimized | ModuleOptions.ModuleBuiltins;
+            //
+            //PythonModule module = context.CompileModule(
+            //    path,
+            //    "__main__",
+            //    context.CreateFileUnit(String.IsNullOrEmpty(path) ? null : path, context.DefaultEncoding),
+            //    modOpt,
+            //    out compiledCode);
+            //context.PublishModule("__main__", module);
+            //
+            //try
+            //{
+            //    return compiledCode.Run(module.Scope);
+            //}
+            //catch (SystemExitException pythonSystemExit)
+            //{
+            //    return null;
+            //}
+
+
 
             var source = host.ScriptEngine.CreateScriptSourceFromFile(path);
             return source.Execute(scriptScope);

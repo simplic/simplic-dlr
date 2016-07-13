@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Simplic.Dlr", "Simplic.Dlr\Simplic.Dlr.csproj", "{265E557A-EBEF-410A-976C-CB561716CFA9}"
 EndProject
@@ -12,6 +12,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample.Wrapper", "Samples\Sample.Wrapper\Sample.Wrapper.csproj", "{4436E38F-DA10-4097-ACE6-2988FA6C62CE}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample.ImportResolver", "Samples\Sample.ImportResolver\Sample.ImportResolver.csproj", "{E7148EAC-D187-4D1A-A4C0-0627578455A4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample.Debugging", "Sample.Debugging\Sample.Debugging.csproj", "{94BE2374-2E26-4849-8B14-A0EA767FBBC0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -35,6 +37,10 @@ Global
 		{E7148EAC-D187-4D1A-A4C0-0627578455A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E7148EAC-D187-4D1A-A4C0-0627578455A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E7148EAC-D187-4D1A-A4C0-0627578455A4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{94BE2374-2E26-4849-8B14-A0EA767FBBC0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{94BE2374-2E26-4849-8B14-A0EA767FBBC0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{94BE2374-2E26-4849-8B14-A0EA767FBBC0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{94BE2374-2E26-4849-8B14-A0EA767FBBC0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -43,5 +49,6 @@ Global
 		{1C9C35BC-1241-4F09-BA76-8326FFC1F225} = {36FD21E1-CC1D-42F4-93A4-CB658BD4F63B}
 		{4436E38F-DA10-4097-ACE6-2988FA6C62CE} = {36FD21E1-CC1D-42F4-93A4-CB658BD4F63B}
 		{E7148EAC-D187-4D1A-A4C0-0627578455A4} = {36FD21E1-CC1D-42F4-93A4-CB658BD4F63B}
+		{94BE2374-2E26-4849-8B14-A0EA767FBBC0} = {36FD21E1-CC1D-42F4-93A4-CB658BD4F63B}
 	EndGlobalSection
 EndGlobal
