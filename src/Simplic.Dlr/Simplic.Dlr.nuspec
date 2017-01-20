@@ -16,7 +16,7 @@
         <language>en-US</language>
         <tags>IronPython DLR Simplic</tags>
             <dependencies>
-      <dependency id="IronPython" version="2.7.5" />
+      <dependency id="IronPython" version="2.7.7" />
     </dependencies>
   </metadata>
 </package>
