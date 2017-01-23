@@ -13,7 +13,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample.Wrapper", "Samples\S
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample.ImportResolver", "Samples\Sample.ImportResolver\Sample.ImportResolver.csproj", "{E7148EAC-D187-4D1A-A4C0-0627578455A4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample.Debugging", "Sample.Debugging\Sample.Debugging.csproj", "{94BE2374-2E26-4849-8B14-A0EA767FBBC0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample.Debugging", "Samples\Sample.Debugging\Sample.Debugging.csproj", "{94BE2374-2E26-4849-8B14-A0EA767FBBC0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
