@@ -1,22 +1,18 @@
 <?xml version="1.0"?>
 <package >
   <metadata>
-    <id>$id$</id>
+    <id>Simplic.DLR</id>
     <version>$version$</version>
     <title>$title$</title>
-    <authors>$author$</authors>
-    <owners>$author$</owners>
-        <licenseUrl>https://github.com/simplicbe/Simplic.Dlr/blob/master/LICENSE</licenseUrl>
-        <projectUrl>https://github.com/simplicbe/Simplic.Dlr</projectUrl>
-        <iconUrl>http://ICON_URL_HERE_OR_DELETE_THIS_LINE</iconUrl>
-        <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>$description$</description>
-        <releaseNotes>Add IronPython as dependency</releaseNotes>
-        <copyright>Copyright 2015</copyright>
-        <language>en-US</language>
-        <tags>IronPython DLR Simplic</tags>
-            <dependencies>
-      <dependency id="IronPython" version="2.7.7" />
-    </dependencies>
+    <authors>SIMPLIC GmbH</authors>
+    <owners>SIMPLIC GmbH</owners>
+    <licenseUrl>https://github.com/simplic-systems/simplic-utilities/blob/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/simplic-systems/simplic-utilities</projectUrl>
+    <iconUrl>https://avatars3.githubusercontent.com/u/14359329?v=3&amp;s=400</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Simplic.DLR</description>
+    <releaseNotes>-</releaseNotes>
+    <copyright>Copyright SIMPLIC GmbH 2015</copyright>
   </metadata>
+
 </package>

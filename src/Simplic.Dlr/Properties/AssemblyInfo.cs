@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("Simplic.Dlr")]
 [assembly: AssemblyDescription("Provides functions to work very easily with the microsoft dlr / IronPython")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Simplic Systems")]
+[assembly: AssemblyCompany("SIMPLIC GmbH")]
 [assembly: AssemblyProduct("Simplic.Dlr")]
-[assembly: AssemblyCopyright("Copyright © Simplic Systems 2016 / Benedikt Eggers")]
+[assembly: AssemblyCopyright("Copyright © SIMPLIC GmbH 2016 / Benedikt Eggers")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
