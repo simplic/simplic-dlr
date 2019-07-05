@@ -4,6 +4,7 @@ using Microsoft.Scripting;
 using Microsoft.Scripting.Hosting;
 using Microsoft.Scripting.Runtime;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -21,6 +22,8 @@ namespace Simplic.Dlr
         private IDictionary<string, CompiledCode> cachedExpressions;
         private IDictionary<string, CompiledCode> compiledScripts;
         private IList<string> executedScripts;
+
+        private static object _lockObject = new object();
         #endregion
 
         #region Constructor
@@ -31,7 +34,9 @@ namespace Simplic.Dlr
         public DlrScriptScope(IDlrHost host)
         {
             this.host = host;
-            cachedExpressions = new Dictionary<string, CompiledCode>();
+            cachedExpressions = new ConcurrentDictionary<string, CompiledCode>();
+            compiledScripts = new ConcurrentDictionary<string, CompiledCode>();
+
             executedScripts = new List<string>();
 
             scriptScope = host.ScriptEngine.CreateScope();
@@ -62,20 +67,23 @@ namespace Simplic.Dlr
             }
             else
             {
-                string hash = Helper.Hash(expression);
-
-                if (cachedExpressions.ContainsKey(hash))
+                lock (_lockObject)
                 {
-                    CompiledCode cc = cachedExpressions[hash];
-                    return cc.Execute(scriptScope);
-                }
-                else
-                {
-                    ScriptSource source = host.ScriptEngine.CreateScriptSourceFromString(expression);
-                    CompiledCode cc = source.Compile();
-                    cachedExpressions.Add(hash, cc);
+                    string hash = Helper.Hash(expression);
 
-                    return cc.Execute(scriptScope);
+                    if (cachedExpressions.ContainsKey(hash))
+                    {
+                        CompiledCode cc = cachedExpressions[hash];
+                        return cc.Execute(scriptScope);
+                    }
+                    else
+                    {
+                        ScriptSource source = host.ScriptEngine.CreateScriptSourceFromString(expression);
+                        CompiledCode cc = source.Compile();
+                        cachedExpressions.Add(hash, cc);
+
+                        return cc.Execute(scriptScope);
+                    }
                 }
             }
         }
