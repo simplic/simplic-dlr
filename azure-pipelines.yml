@@ -1,0 +1,52 @@
+trigger:
+  branches:
+    include:
+    - master
+    - dev
+  paths:
+    include:
+    - src/*
+    - test/*
+    - azure-pipelines.yml
+
+pr:
+  branches:
+    include:
+    - '*'
+
+pool:
+  vmImage: 'windows-latest'
+
+variables:
+  buildConfiguration: 'Release'
+
+steps:
+- task: NuGetToolInstaller@1
+  inputs:
+    versionSpec: '5.x'
+- task: NuGetCommand@2
+  inputs:
+    command: 'restore'
+    restoreSolution: '**/*.sln'
+    feedsToUse: 'select'
+    vstsFeed: 'f7087ef5-bf6f-48b2-8b8b-5e513f4a7a9e'
+
+- task: MSBuild@1
+  inputs:
+    solution: '**/*.sln'
+    configuration: '$(buildConfiguration)'
+
+- task: NuGetCommand@2
+  inputs:
+    command: 'pack'
+    packagesToPack: 'src/Simplic.**/*.csproj'
+    configuration: '$(buildConfiguration)'
+    versioningScheme: 'off'
+
+- task: NuGetCommand@2
+  inputs:
+    command: 'push'
+    packagesToPush: '$(Build.ArtifactStagingDirectory)/Simplic.*.nupkg;!**/Simplic.Cloud.*.symbols.nupkg'
+    nuGetFeedType: 'internal'
+    publishVstsFeed: 'f7087ef5-bf6f-48b2-8b8b-5e513f4a7a9e'
+    allowPackageConflicts: true
