@@ -1,52 +1,67 @@
 trigger:
   branches:
     include:
-    - master
-    - dev
+      - master
+      - dev
   paths:
     include:
-    - src/*
-    - test/*
-    - azure-pipelines.yml
+      - src/*
+      - test/*
+      - azure-pipelines.yml
 
 pr:
   branches:
     include:
-    - '*'
+      - "*"
 
 pool:
-  vmImage: 'windows-latest'
+  vmImage: "windows-latest"
 
 variables:
-  buildConfiguration: 'Release'
+  buildConfiguration: "Release"
+
+resources:
+  repositories:
+    - repository: infrastructure
+      type: github
+      name: simplic/build-infrastructure
+      endpoint: simplic-bot
 
 steps:
-- task: NuGetToolInstaller@1
-  inputs:
-    versionSpec: '5.x'
-- task: NuGetCommand@2
-  inputs:
-    command: 'restore'
-    restoreSolution: '**/*.sln'
-    feedsToUse: 'select'
-    vstsFeed: 'f7087ef5-bf6f-48b2-8b8b-5e513f4a7a9e'
+  - task: NuGetToolInstaller@1
+    inputs:
+      versionSpec: "5.x"
+  - task: NuGetCommand@2
+    inputs:
+      command: "restore"
+      restoreSolution: "**/*.sln"
+      feedsToUse: "select"
+      vstsFeed: "f7087ef5-bf6f-48b2-8b8b-5e513f4a7a9e"
 
-- task: MSBuild@1
-  inputs:
-    solution: '**/*.sln'
-    configuration: '$(buildConfiguration)'
+  - ${{ if not(eq(variables['Build.Reason'], 'PullRequest')) }}:
+      - template: version-number-update-template.yml@infrastructure
+        parameters:
+          connection_string: $(connection_string)
+          git_user: $(git_user)
+          git_pass: $(git_pass)
+          branch_name: ${{ replace(variables['Build.SourceBranch'], 'refs/heads/', '') }}
 
-- task: NuGetCommand@2
-  inputs:
-    command: 'pack'
-    packagesToPack: 'src/Simplic.Dlr/Simplic.Dlr.csproj'
-    configuration: '$(buildConfiguration)'
-    versioningScheme: 'off'
+  - task: MSBuild@1
+    inputs:
+      solution: "**/*.sln"
+      configuration: "$(buildConfiguration)"
 
-- task: NuGetCommand@2
-  inputs:
-    command: 'push'
-    packagesToPush: '$(Build.ArtifactStagingDirectory)/Simplic.Dlr.*.nupkg;!**/Simplic.Dlr.*.symbols.nupkg'
-    nuGetFeedType: 'internal'
-    publishVstsFeed: 'f7087ef5-bf6f-48b2-8b8b-5e513f4a7a9e'
-    allowPackageConflicts: true
+  - task: NuGetCommand@2
+    inputs:
+      command: "pack"
+      packagesToPack: "src/Simplic.Dlr/Simplic.Dlr.csproj"
+      configuration: "$(buildConfiguration)"
+      versioningScheme: "off"
+
+  - task: NuGetCommand@2
+    inputs:
+      command: "push"
+      packagesToPush: "$(Build.ArtifactStagingDirectory)/Simplic.Dlr.*.nupkg;!**/Simplic.Dlr.*.symbols.nupkg"
+      nuGetFeedType: "internal"
+      publishVstsFeed: "f7087ef5-bf6f-48b2-8b8b-5e513f4a7a9e"
+      allowPackageConflicts: true
